@@ -5,7 +5,12 @@
 
   <groupId>com.miaoshaproject</groupId>
   <artifactId>miaosha</artifactId>
+  <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
+  <modules>
+    <module>usermicroservice-1001</module>
+  </modules>
+  <!--  <packaging>pom</packaging>-->
 
   <name>miaosha</name>
   <!-- FIXME change it to the project's website -->
