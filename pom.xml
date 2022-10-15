@@ -12,6 +12,7 @@
       <module>itemmicroservice-2001</module>
       <module>ordermicroservice-3001</module>
       <module>promomicroservice-4001</module>
+      <module>paymentmicroservice-5001</module>
   </modules>
   <!--  <packaging>pom</packaging>-->
 
