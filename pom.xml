@@ -10,6 +10,8 @@
   <modules>
     <module>usermicroservice-1001</module>
       <module>itemmicroservice-2001</module>
+      <module>ordermicroservice-3001</module>
+      <module>promomicroservice-4001</module>
   </modules>
   <!--  <packaging>pom</packaging>-->
 
