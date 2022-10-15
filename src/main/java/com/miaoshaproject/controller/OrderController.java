@@ -23,10 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-24  -11:44
- */
 @Controller("order")
 @RequestMapping("/order")
 @CrossOrigin(origins = {"*"}, allowCredentials = "true")

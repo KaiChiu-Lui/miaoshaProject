@@ -1,0 +1,115 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+  <link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+  <link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+  <script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+  <title>Title</title>
+</head>
+<body class="login">
+<div class="content">
+  <h3 class="form-title">创建活动</h3>
+  <div class="form-group">
+    <label class="control-label">活动描述</label>
+    <div>
+      <input class="form-control" type="text"  name="promoName" id="promoName"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label">活动商品编号</label>
+    <div>
+      <input class="form-control" type="text"  name="itemId" id="itemId"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label">活动价格</label>
+    <div>
+      <input class="form-control" type="text" name="promoItemPrice" id="promoItemPrice"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label">开始时间</label>
+    <div>
+      <input class="form-control" type="date" name="startTime" id="startTime"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label">结束时间</label>
+    <div>
+      <input class="form-control" type="date" name="endTime" id="endTime"/>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn blue" id="create" type="submit">
+      提交创建
+    </button>
+  </div>
+</div>
+
+</body>
+
+<script>
+  jQuery(document).ready(function () {
+
+    //绑定register按钮的click事件
+    $("#create").on("click",function () {
+
+      var promoName = $("#promoName").val();
+      var itemId = $("#itemId").val();
+      var promoItemPrice = $("#promoItemPrice").val();
+      var startTime = $("#startTime").val();
+      var endTime = $("#endTime").val();
+
+      if (promoName==null || promoName=="") {
+        alert("活动描述不能Wie空");
+        return false;
+      }
+      if (itemId==null || itemId=="") {
+        alert("活动商品编号不能为空");
+        return false;
+      }
+      if (promoItemPrice==null || promoItemPrice=="") {
+        alert("商品价格不能为空");
+        return false;
+      }
+      if (startTime==null ||startTime=="") {
+        alert("开始时间不能为空");
+        return false;
+      }
+      if (endTime==null || endTime=="") {
+        alert("结束时间不能为空");
+        return false;
+      }
+
+      //映射到后端/promo/insert
+      $.ajax({
+        type:"POST",
+        contentType:"application/x-www-form-urlencoded",
+        url:"http://localhost:4001/promo/insert",
+        data:{
+          "promoName":promoName,
+          "itemId":itemId,
+          "promoItemPrice":promoItemPrice,
+          "startTime":startTime,
+          "endTime":endTime
+        },
+        //允许跨域请求
+        xhrFields:{withCredentials:true},
+        success:function (data) {
+          if (data.status=="success") {
+            alert("创建成功");
+            window.location.href="promomanagement.html";
+          }else {
+            alert("创建失败，原因为" + data.data.errMsg);
+          }
+        },
+        error:function (data) {
+          alert("创建失败，原因为"+data.responseText);
+        }
+      });
+      return false;
+    });
+  });
+</script>
+</html>

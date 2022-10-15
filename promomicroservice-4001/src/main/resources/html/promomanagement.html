@@ -1,0 +1,95 @@
+<html xmlns:float="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+  <link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+  <link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+  <script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+  <title>Title</title>
+</head>
+<body>
+<div class="content">
+  <h3 class="form-title">活动管理</h3>
+  <button float:left id='insertbutton'>新增</button>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+      <tr>
+        <th>活动描述</th>
+        <th>商品编号</th>
+        <th>商品价格</th>
+        <th>开始日期</th>
+        <th>结束日期</th>
+      </tr>
+      </thead>
+      <tbody id="container">
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+
+<script>
+  // 定义全局商品数组信息
+  var g_promoList = [];
+  $(document).ready(function() {
+    $("#insertbutton").on("click", function(e) {
+      window.location.href="createpromo.html";
+    });
+    $.ajax({
+      type: "GET",
+      url: "http://localhost:4001/promo/list",
+      xhrFields:{
+        withCredentials:true,
+      },
+      success: function(data) {
+        if (data.status == "success") {
+          g_promoList = data.data;
+          reloadDom();
+        } else {
+          alert("获取活动信息失败，原因为" + data.data.errMsg);
+        }
+      },
+      error: function(data) {
+        alert("获取活动信息失败，原因为" + data.responseText);
+      }
+    });
+  });
+  function reloadDom() {
+    for (var i = 0; i < g_promoList.length; i++) {
+      var promoVO =g_promoList[i];
+      var dom =
+              "<tr data-id='"+promoVO.id+"' id='promoDetail"+promoVO.id+"'>\
+			<td>"+promoVO.promoName+"</td>\
+			<td>"+promoVO.itemId+"</td>\
+			<td>"+promoVO.promoItemPrice+"</td>\
+			<td>"+promoVO.startDateString+"</td>\
+			<td>"+promoVO.endDateString+"</td>\
+			<td><button id='deletebutton"+promoVO.id+"'>删除</button></td>>\
+			</tr>";
+      $("#container").append($(dom));
+      //删除按钮
+      $("#deletebutton"+promoVO.id).on("click", function(e) {
+        $.ajax({
+          type: "GET",
+          url: "http://localhost:4001/promo/delete"+"?id="+promoVO.id,
+          xhrFields:{
+            withCredentials:true,
+          },
+          success: function(data) {
+            if (data.status == "success") {
+              location.reload();
+            } else {
+              alert("删除活动信息失败，原因为" + data.data.errMsg);
+            }
+          },
+          error: function(data) {
+            alert("删除商品信息失败，原因为" + data.responseText);
+          }
+        });
+      });
+    }
+  }
+</script>
+
+</html></html>

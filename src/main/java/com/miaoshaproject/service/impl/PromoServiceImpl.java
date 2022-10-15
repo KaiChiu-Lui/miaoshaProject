@@ -19,8 +19,6 @@ public class PromoServiceImpl implements PromoService {
     @Autowired
     private PromoDOMapper promoDOMapper;
 
-
-
     //根据iremId获取即将开始的或者正在进行的活动
     @Override
     public PromoModel getPromoByItemId(Integer itemId) {
