@@ -1,13 +1,11 @@
 package com.miaoshaproject.service.model;
 
-import org.joda.time.DateTime;
+import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-24  -20:26
- */
+@Data
 public class PromoModel {
     private Integer id;
 
@@ -18,70 +16,14 @@ public class PromoModel {
     private String promoName;
 
     //秒杀活动的开始时间
-    private DateTime startDate;
+    private Date startDate;
 
     //秒杀活动的结束时间
-    private DateTime endDate;
+    private Date endDate;
 
     //秒杀活动的适用商品
     private Integer itemId;
 
     //秒杀活动的商品价格
     private BigDecimal promoItemPrice;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getPromoName() {
-        return promoName;
-    }
-
-    public void setPromoName(String promoName) {
-        this.promoName = promoName;
-    }
-
-    public DateTime getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(DateTime startDate) {
-        this.startDate = startDate;
-    }
-
-    public DateTime getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(DateTime endDate) {
-        this.endDate = endDate;
-    }
-
-    public Integer getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(Integer itemId) {
-        this.itemId = itemId;
-    }
-
-    public BigDecimal getPromoItemPrice() {
-        return promoItemPrice;
-    }
-
-    public void setPromoItemPrice(BigDecimal promoItemPrice) {
-        this.promoItemPrice = promoItemPrice;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
 }

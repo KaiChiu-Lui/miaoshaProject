@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,8 +70,8 @@ public class ItemController extends BaseController {
         if (itemModel.getPromoModel() != null) {
             itemVO.setPromoStatus(itemModel.getPromoModel().getStatus());
             itemVO.setPromoId(itemModel.getPromoModel().getId());
-            itemVO.setStartDate(itemModel.getPromoModel().getStartDate().
-                    toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
+            itemVO.setStartDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").
+                    format(itemModel.getPromoModel().getStartDate()));
             itemVO.setPromoPrice(itemModel.getPromoModel().getPromoItemPrice());
         } else {
             itemVO.setPromoStatus(0);
