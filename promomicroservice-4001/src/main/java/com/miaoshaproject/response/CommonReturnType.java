@@ -18,8 +18,6 @@ public class CommonReturnType {
     //若status=fail，则data内使用通用的错误码格式
     private Object data;
 
-    private UserModel user;
-
     //定义一个通用的创建方法
     public static CommonReturnType create(Object result) {
         return CommonReturnType.create(result, "success");

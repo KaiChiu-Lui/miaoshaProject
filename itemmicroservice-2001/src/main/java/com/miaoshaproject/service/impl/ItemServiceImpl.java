@@ -1,5 +1,6 @@
 package com.miaoshaproject.service.impl;
 
+import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.dao.ItemDOMapper;
 import com.miaoshaproject.dao.ItemStockDOMapper;
 import com.miaoshaproject.dataobject.ItemDO;
@@ -38,7 +39,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemModel createItem(ItemModel itemModel) throws BusinessException {
-
         //校验入参
         ValidationResult result = validator.validate(itemModel);
         if (result.isHasErrors()) {
@@ -101,15 +101,13 @@ public class ItemServiceImpl implements ItemService {
         }
         //操作获得库存数量
         ItemStockDO itemStockDO = itemStockDOMapper.selectByItemId(itemDO.getId());
-
         //将dataobject-> Model
         ItemModel itemModel = convertModelFromDataObject(itemDO, itemStockDO);
-
-        //获取活动商品信息
-        PromoModel promoModel = promoService.getPromoByItemId(itemModel.getId());
-        if (promoModel != null && promoModel.getStatus().intValue() != 3) {
-            itemModel.setPromoModel(promoModel);
-        }
+        // //获取活动商品信息
+        // PromoModel promoModel = promoService.getPromoByItemId(itemModel.getId());
+        // if (promoModel != null && promoModel.getStatus().intValue() != 3) {
+        //     itemModel.setPromoModel(promoModel);
+        // }
         return itemModel;
     }
 

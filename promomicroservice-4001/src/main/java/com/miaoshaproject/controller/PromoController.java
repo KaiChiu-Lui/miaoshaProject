@@ -19,22 +19,28 @@ import java.util.Date;
 import java.util.List;
 
 @Controller
-@RequestMapping("/promo")
 @CrossOrigin(origins = {"*"}, allowCredentials = "true")
+@RequestMapping("/promo")
 public class PromoController extends BaseController{
 
     @Autowired
     private PromoServiceImpl promoService;
 
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @RequestMapping("/get")
     @ResponseBody
-    public CommonReturnType getPromoByItemId(@RequestParam("id") int promoId){
-        PromoModel promoModel = promoService.getPromoByPrimaryKey(promoId);
+    public CommonReturnType getPromoByItemId(@RequestParam("id") int itemId){
+        PromoModel promoModel = promoService.getPromoByItemId(itemId);
         PromoVO promoVO = convertFromModel(promoModel);
-        if(promoVO==null) return null;
-        return CommonReturnType.create(promoVO);
+        if(promoVO==null) return CommonReturnType.create(null);
+        promoVO.setStartDateString(simpleDateFormat.format(promoModel.getStartDate()));
+        promoVO.setEndDateString(simpleDateFormat.format(promoModel.getEndDate()));
+        System.out.println(promoVO);
+        System.out.println(22);
+        CommonReturnType commonReturnType = CommonReturnType.create(promoVO);
+        System.out.println(22);
+        return commonReturnType;
     }
 
     @RequestMapping("/list")

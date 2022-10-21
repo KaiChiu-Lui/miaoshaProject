@@ -45,9 +45,9 @@ public class PromoServiceImpl implements PromoService {
             return null;
         }
         //判断当前时间是否秒杀活动即将开始或正在进行
-        if (promoModel.getStartDate().compareTo(new Date())==-1) {
+        if (promoModel.getStartDate().compareTo(new Date())>0) {
             promoModel.setStatus(1);
-        } else if (promoModel.getEndDate().compareTo(new Date())==1) {
+        } else if (promoModel.getEndDate().compareTo(new Date())<0) {
             promoModel.setStatus(3);
         } else {
             promoModel.setStatus(2);

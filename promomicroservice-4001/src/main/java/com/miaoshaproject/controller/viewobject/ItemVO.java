@@ -1,11 +1,12 @@
 package com.miaoshaproject.controller.viewobject;
 
+import lombok.Data;
+import lombok.ToString;
+
 import java.math.BigDecimal;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-20  -16:05
- */
+@Data
+@ToString
 public class ItemVO {
     private Integer id;
 

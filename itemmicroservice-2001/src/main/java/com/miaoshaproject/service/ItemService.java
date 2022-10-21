@@ -1,5 +1,6 @@
 package com.miaoshaproject.service;
 
+import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.service.model.ItemModel;
 

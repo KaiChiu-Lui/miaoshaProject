@@ -1,25 +1,25 @@
 package com.miaoshaproject.service.impl;
-import com.miaoshaproject.dao.ItemDOMapper;
-import com.miaoshaproject.dao.ItemStockDOMapper;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.client.ItemFeignClient;
+import com.miaoshaproject.client.OrderFeignClient;
+import com.miaoshaproject.client.PromoFeignClient;
+import com.miaoshaproject.client.UserFeignClient;
+import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.dao.OrderDOMapper;
 import com.miaoshaproject.dao.SequenceDOMapper;
 import com.miaoshaproject.dataobject.OrderDO;
 import com.miaoshaproject.dataobject.SequenceDO;
-import com.miaoshaproject.error.*;
-import com.miaoshaproject.dataobject.ItemDO;
-import com.miaoshaproject.dataobject.ItemStockDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
-import com.miaoshaproject.service.ItemService;
+import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.PaymentService;
 import com.miaoshaproject.service.UserService;
-import com.miaoshaproject.service.model.ItemModel;
 import com.miaoshaproject.service.model.OrderModel;
 import com.miaoshaproject.service.model.UserModel;
-import com.miaoshaproject.validator.ValidationResult;
-import com.miaoshaproject.validator.ValidatorImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Service
 public class PaymentServiceImpl implements PaymentService{
 
 
@@ -42,63 +43,78 @@ public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private SequenceDOMapper sequenceDOMapper;
 
+    @Autowired
+    private ItemFeignClient itemFeignClient;
+
+    @Autowired
+    private UserFeignClient userFeignClient;
+    
+    @Autowired
+    private PromoFeignClient promoFeignClient;
+
+    @Autowired
+    private OrderFeignClient orderFeignClient;
+
     @Override
     @Transactional
-    public OrderModel createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException {
-        //1.校验下单状态，下单的商品是否存在，用户是否合法，购买数量是否正确
-        ItemModel itemModel = itemService.getItemById(itemId);
-        if (itemModel == null) {
+    public void createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException {
+        //1.下单的商品是否存在
+        CommonReturnType commonReturnType = itemFeignClient.getItem(itemId);
+        String str = JSON.toJSONString(commonReturnType.getData());
+        if(str==null){
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "商品信息不存在");
         }
-        UserModel userModel = userService.getUserById(userId);
-        if (userModel == null) {
+        ItemVO itemVO = JSONObject.parseObject(str,ItemVO.class);
+        System.out.println("itemVO");
+        System.out.println(itemVO);
+
+        //2.用户是否登录
+        CommonReturnType userresult = userFeignClient.getUser(userId);
+        String s = JSON.toJSONString(commonReturnType.getData());
+        if(s==null){
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
         }
+        JSONObject.parseObject(s, UserModel.class);
 
+        //3.下单数量是否合法
         if (amount <= 0 || amount > 99) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "数量信息不存在");
         }
-        //校验活动信息
+
+        //4.活动信息是否正确
         if (promoId != null) {
             //(1)校验对应活动是否存在这个适用商品
-            if (promoId.intValue() != itemModel.getPromoModel().getId()) {
+            if (promoId.intValue() != itemVO.getPromoId()) {
                 throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
                 //(2)校验活动是否正在进行中
-            } else if (itemModel.getPromoModel().getStatus() != 2) {
+            } else if (itemVO.getPromoStatus() != 2) {
                 throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
             }
         }
 
-        //2.落单减库存
-        boolean result = itemService.decreaseStock(itemId, amount);
+        //5.落单减库存
+        boolean result = (boolean) itemFeignClient.decreaseStock(itemId,amount).getData();
         if (!result) {
             throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
         }
 
-        //3.订单入库
-        OrderModel orderModel = new OrderModel();
-        orderModel.setUserId(userId);
-        orderModel.setItemId(itemId);
-        orderModel.setPromoId(promoId);
-        orderModel.setAmount(amount);
-
+        //6.生成订单及其流水号
+        BigDecimal itemPrice;
         if (promoId != null) {
-            orderModel.setItemPrice(itemModel.getPromoModel().getPromoItemPrice());
+            itemPrice = itemVO.getPromoPrice();
         } else {
-            orderModel.setItemPrice(itemModel.getPrice());
+            itemPrice = itemVO.getPrice();
         }
+        System.out.println("itemPrice");
+        System.out.println(itemPrice);
 
-        orderModel.setOrderPrice(orderModel.getItemPrice().multiply(BigDecimal.valueOf(amount)));
 
-        //生成交易流水号
-        orderModel.setId(generateOrderNo());
-        OrderDO orderDO = this.convertFromOrderModel(orderModel);
-        orderDOMapper.insertSelective(orderDO);
-        //加上商品的销量
-        itemService.increaseSales(itemId, amount);
+        orderFeignClient.insertOrder(userId,itemId,promoId,amount,itemPrice.toString());
 
+        //7.加上商品的销量
+        itemFeignClient.increaseSale(itemId,amount);
         //4.返回前端
-        return orderModel;
+        return;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

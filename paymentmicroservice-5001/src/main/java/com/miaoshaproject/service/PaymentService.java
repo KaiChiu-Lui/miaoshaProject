@@ -5,5 +5,5 @@ import com.miaoshaproject.service.model.ItemModel;
 import com.miaoshaproject.service.model.OrderModel;
 
 public interface PaymentService {
-    public OrderModel createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException;
+    public void createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException;
 }

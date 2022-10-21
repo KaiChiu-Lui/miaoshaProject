@@ -19,7 +19,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/userm")
 @CrossOrigin(allowCredentials = "true",allowedHeaders = "*") //@CrossOrigin解决跨域请求错误
-public class UserManagementController {
+public class UserManagementController extends BaseController{
 
     @Autowired
     private UserService userService;
@@ -27,13 +27,7 @@ public class UserManagementController {
     @Autowired
     private HttpServletRequest httpServletRequest;
 
-    /**
-     * @Author LvQiChao
-     * @Description 获取用户信息
-     * @Date 15:34 2022/10/14 0014
-     * @Param [id]
-     * @return com.miaoshaproject.response.CommonReturnType
-     **/
+
     @RequestMapping("/get")
     @ResponseBody
     public CommonReturnType getUser(@RequestParam(name = "id") Integer id) throws BusinessException {
@@ -52,27 +46,14 @@ public class UserManagementController {
         return CommonReturnType.create(userVO);
     }
 
-    /**
-     * @Author LvQiChao
-     * @Description 查看所有的User
-     * @Date 15:40 2022/10/14 0014
-     * @Param
-     * @return
-     **/
+
     @RequestMapping("/list")
     @ResponseBody
     public CommonReturnType listUser(){
         List<UserModel> list = userService.list();
         return CommonReturnType.create(list);
     }
-    
-    /**
-     * @Author LvQiChao
-     * @Description 删除User
-     * @Date 15:40 2022/10/14 0014
-     * @Param []
-     * @return com.miaoshaproject.response.CommonReturnType
-     **/
+
     @RequestMapping("/delete")
     @ResponseBody
     public CommonReturnType deleteUser(@RequestParam("id") int userId){

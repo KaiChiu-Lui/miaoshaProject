@@ -1,26 +1,27 @@
 package com.miaoshaproject.controller;
-
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.client.ItemFeignClient;
+import com.miaoshaproject.client.PromoFeignClient;
+import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
+import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.model.ItemModel;
-import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-20  -16:04
- */
-@Controller("item")
+
+@Controller
 @RequestMapping("/item")
 //跨域请求中，不能做到session共享
 @CrossOrigin(origins = {"*"}, allowCredentials = "true")
@@ -28,6 +29,9 @@ public class ItemController extends BaseController {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private PromoFeignClient promoFeignClient;
 
     //创建商品的controller
     @RequestMapping(value = "/create", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
@@ -46,7 +50,7 @@ public class ItemController extends BaseController {
         itemModel.setImgUrl(imgUrl);
 
         ItemModel itemModelForReturn = itemService.createItem(itemModel);
-        ItemVO itemVO = convertVOFromModel(itemModelForReturn);
+        ItemVO itemVO = convertVOFromModel(itemModelForReturn,null);
         return CommonReturnType.create(itemVO);
 
     }
@@ -61,33 +65,49 @@ public class ItemController extends BaseController {
         return commonReturnType;
     }
 
-    private ItemVO convertVOFromModel(ItemModel itemModel) {
+    private ItemVO convertVOFromModel(ItemModel itemModel,PromoVO promoVO) {
         if (itemModel == null) {
             return null;
         }
         ItemVO itemVO = new ItemVO();
         BeanUtils.copyProperties(itemModel, itemVO);
-        if (itemModel.getPromoModel() != null) {
-            itemVO.setPromoStatus(itemModel.getPromoModel().getStatus());
-            itemVO.setPromoId(itemModel.getPromoModel().getId());
-            itemVO.setStartDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").
-                    format(itemModel.getPromoModel().getStartDate()));
-            itemVO.setPromoPrice(itemModel.getPromoModel().getPromoItemPrice());
-        } else {
+        if(promoVO!=null){
+            itemVO.setPromoStatus(promoVO.getStatus());
+            itemVO.setPromoId(promoVO.getId());
+            itemVO.setStartDate(promoVO.getStartDateString());
+            itemVO.setPromoPrice(promoVO.getPromoItemPrice());
+        }
+        else {
             itemVO.setPromoStatus(0);
         }
         return itemVO;
     }
 
+    @RequestMapping("/decreaseStock")
+    @ResponseBody
+    public CommonReturnType decreaseStock(Integer itemId,Integer amount) throws BusinessException{
+        return CommonReturnType.create(itemService.decreaseStock(itemId,amount));
+    }
 
+    @RequestMapping("/increaseSale")
+    @ResponseBody
+    public CommonReturnType increaseSale(Integer itemId,Integer amount) throws BusinessException{
+        itemService.increaseSales(itemId,amount);
+        return CommonReturnType.create(null);
+    }
     //商品详情页浏览
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
+        CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
+        PromoVO promoVO = null;
+        if(commonReturnType.getData()!=null){
+            String str = JSON.toJSONString(commonReturnType.getData());
+            promoVO = JSONObject.parseObject(str, PromoVO.class);
+        }
         ItemModel itemModel = itemService.getItemById(id);
-
-        ItemVO itemVO = convertVOFromModel(itemModel);
-
+        // System.out.println(promoVO);
+        ItemVO itemVO = convertVOFromModel(itemModel,promoVO);
         return CommonReturnType.create(itemVO);
     }
 
@@ -96,14 +116,38 @@ public class ItemController extends BaseController {
     @ResponseBody
     public CommonReturnType listItem() {
         List<ItemModel> itemModelList = itemService.listItem();
-
         List<ItemVO> itemVOList = itemModelList.stream().map(itemModel -> {
-            ItemVO itemVO = this.convertVOFromModel(itemModel);
+            CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(itemModel.getId());
+            PromoVO promoVO = null;
+            if(commonReturnType.getData()!=null){
+                String str = JSON.toJSONString(commonReturnType.getData());
+                promoVO = JSONObject.parseObject(str, PromoVO.class);
+            }
+            ItemVO itemVO = this.convertVOFromModel(itemModel,promoVO);
             return itemVO;
         }).collect(Collectors.toList());
 
         return CommonReturnType.create(itemVOList);
     }
 
+    public RestTemplate restTemplate = new RestTemplate();
 
+
+    @Autowired
+    public ItemFeignClient itemFeignClient;
+
+
+    @RequestMapping("/test")
+    @ResponseBody
+    public void test(){
+        CommonReturnType commonReturnType = itemFeignClient.getItem(7);
+        System.out.println(commonReturnType);
+        System.out.println(commonReturnType.getStatus().getClass());
+        System.out.println(commonReturnType.getData().getClass());
+        System.out.println(commonReturnType.getData());
+        String data = JSON.toJSONString(commonReturnType.getData());
+        ItemVO itemVO = JSONObject.parseObject(data,ItemVO.class);
+        System.out.println(itemVO.getClass());
+        System.out.println(itemVO);
+    }
 }

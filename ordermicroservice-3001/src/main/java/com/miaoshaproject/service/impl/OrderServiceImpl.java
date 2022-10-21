@@ -24,15 +24,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-23  -21:56
- */
+
 @Service
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ItemService itemService;
+
     @Autowired
     private UserService userService;
 
@@ -152,6 +150,7 @@ public class OrderServiceImpl implements OrderService {
         BeanUtils.copyProperties(orderDO,orderModel);
         return orderModel;
     }
+
     @Override
     public List<OrderModel> listOrder(int userId) {
         List<OrderDO> orderDOs = orderDOMapper.listOrder(userId);
@@ -164,4 +163,25 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderModels;
     }
+
+    @Override
+    public Integer insertOrder(Integer userId, Integer itemId, Integer promoId, Integer amount, BigDecimal itemPrice) {
+        System.out.println("Service.insertOrder");
+        OrderDO orderDO = new OrderDO();
+        System.out.println(0);
+        System.out.println(itemPrice);
+        System.out.println(amount);
+        orderDO.setOrderPrice(itemPrice.multiply(BigDecimal.valueOf(amount)));
+        System.out.println(1);
+        orderDO.setAmount(amount);
+        orderDO.setItemId(itemId);
+        orderDO.setItemPrice(itemPrice);
+        orderDO.setUserId(userId);
+        orderDO.setPromoId(promoId);
+        orderDO.setId(generateOrderNo());
+        System.out.println(2);
+        System.out.println("调用了OrderServiceImpl.insertOrder");
+        return orderDOMapper.insertSelective(orderDO);
+    }
+
 }
