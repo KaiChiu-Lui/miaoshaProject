@@ -13,5 +13,5 @@ public interface PromoFeignClient {
 
     @RequestMapping("/get")
     @ResponseBody
-    public CommonReturnType getPromoByItemId(@RequestParam("id") int itemId);
+    public CommonReturnType getPromoByItemId(@RequestParam("id") Integer itemId);
 }

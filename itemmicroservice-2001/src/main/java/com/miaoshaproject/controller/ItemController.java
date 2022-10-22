@@ -100,6 +100,7 @@ public class ItemController extends BaseController {
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
         CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
+        System.out.println(commonReturnType);
         PromoVO promoVO = null;
         if(commonReturnType.getData()!=null){
             String str = JSON.toJSONString(commonReturnType.getData());

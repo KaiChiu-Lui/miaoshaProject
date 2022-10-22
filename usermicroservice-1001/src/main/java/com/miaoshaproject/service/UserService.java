@@ -23,5 +23,4 @@ public interface UserService {
     List<UserModel> list();
 
     int deleteUser(Integer userId);
-
 }

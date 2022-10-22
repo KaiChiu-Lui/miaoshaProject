@@ -30,16 +30,15 @@ public class PromoController extends BaseController{
 
     @RequestMapping("/get")
     @ResponseBody
-    public CommonReturnType getPromoByItemId(@RequestParam("id") int itemId){
+    public CommonReturnType getPromoByItemId(@RequestParam("id") Integer itemId){
+        System.out.println("什么情况");
         PromoModel promoModel = promoService.getPromoByItemId(itemId);
+        System.out.println("promoModel:"+promoModel);
         PromoVO promoVO = convertFromModel(promoModel);
         if(promoVO==null) return CommonReturnType.create(null);
         promoVO.setStartDateString(simpleDateFormat.format(promoModel.getStartDate()));
         promoVO.setEndDateString(simpleDateFormat.format(promoModel.getEndDate()));
-        System.out.println(promoVO);
-        System.out.println(22);
         CommonReturnType commonReturnType = CommonReturnType.create(promoVO);
-        System.out.println(22);
         return commonReturnType;
     }
 

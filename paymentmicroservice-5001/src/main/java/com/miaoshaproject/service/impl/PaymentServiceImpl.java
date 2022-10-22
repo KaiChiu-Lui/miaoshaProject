@@ -6,6 +6,7 @@ import com.miaoshaproject.client.OrderFeignClient;
 import com.miaoshaproject.client.PromoFeignClient;
 import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
+import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.dao.OrderDOMapper;
 import com.miaoshaproject.dao.SequenceDOMapper;
 import com.miaoshaproject.dataobject.OrderDO;
@@ -19,6 +20,7 @@ import com.miaoshaproject.service.model.OrderModel;
 import com.miaoshaproject.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +32,6 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class PaymentServiceImpl implements PaymentService{
 
-
-    @Autowired
-    private ItemServiceImpl itemService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private OrderDOMapper orderDOMapper;
-
     @Autowired
     private SequenceDOMapper sequenceDOMapper;
 
@@ -48,12 +40,12 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Autowired
     private UserFeignClient userFeignClient;
-    
-    @Autowired
-    private PromoFeignClient promoFeignClient;
 
     @Autowired
     private OrderFeignClient orderFeignClient;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     @Transactional

@@ -29,8 +29,8 @@ public class PaymentController extends BaseController{
     @Autowired
     public PaymentServiceImpl paymentService;
 
-    @Autowired
-    public HttpServletRequest httpServletRequest;
+    // @Autowired
+    // public HttpServletRequest httpServletRequest;
 
     @Autowired
     public RedisTemplate redisTemplate;
@@ -53,15 +53,11 @@ public class PaymentController extends BaseController{
         // }
         // UserModel userModel = (UserModel) redisTemplate.opsForValue().get(uid);
         // System.out.println(userModel);
-        System.out.println(0);
-        CommonReturnType commonReturnType = userFeignClient.getUser(58);
-        System.out.println(00);
-        String userVOStr = JSON.toJSONString(commonReturnType.getData());
-        System.out.println(000);
-        UserVO userVO = JSONObject.parseObject(userVOStr,UserVO.class);
-        System.out.println(1);
+        if(uid==null||redisTemplate.opsForValue().get(uid)==null){
+            throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
+        }
+        UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
         paymentService.createOrder(userVO.getId(), itemId, promoId, amount);
-        System.out.println(2);
         return CommonReturnType.create(null);
     }
 
@@ -82,13 +78,11 @@ public class PaymentController extends BaseController{
 
     @RequestMapping("/testCookie")
     @ResponseBody
-    public CommonReturnType testCookie(@CookieValue(value = "is_login",required = false) String uid){
-        return CommonReturnType.create(uid);
-    }
-
-    @RequestMapping("/testUserFeignClient")
-    @ResponseBody
-    public CommonReturnType testUserFeignClient() throws BusinessException {
-        return userFeignClient.getUser(58);
+    public CommonReturnType testCookie(@CookieValue(value = "is_login",required = false) String uid) throws BusinessException{
+        if(uid==null||redisTemplate.opsForValue().get(uid)==null){
+            throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
+        }
+        UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
+        return CommonReturnType.create(userVO);
     }
 }

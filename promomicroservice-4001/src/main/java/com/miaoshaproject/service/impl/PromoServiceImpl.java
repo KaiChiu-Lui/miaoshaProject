@@ -13,16 +13,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-24  -21:46
- */
+
 @Service
 public class PromoServiceImpl implements PromoService {
 
     @Autowired
     private PromoDOMapper promoDOMapper;
-
 
     @Override
     public PromoModel getPromoByPrimaryKey(Integer promoId) {
@@ -32,18 +28,20 @@ public class PromoServiceImpl implements PromoService {
         return promoModel;
     }
 
-    //根据iremId获取即将开始的或者正在进行的活动
+    //根据itemId获取即将开始的或者正在进行的活动
     @Override
     public PromoModel getPromoByItemId(Integer itemId) {
-
         //获取商品对应的秒杀信息
+        System.out.println(0);
+        System.out.println("itemId:"+itemId);
         PromoDO promoDO = promoDOMapper.selectByItemId(itemId);
-
+        System.out.println(1);
         //dataobject->model
         PromoModel promoModel = convertFromDataObject(promoDO);
         if (promoModel == null) {
             return null;
         }
+        System.out.println(2);
         //判断当前时间是否秒杀活动即将开始或正在进行
         if (promoModel.getStartDate().compareTo(new Date())>0) {
             promoModel.setStatus(1);
@@ -52,6 +50,8 @@ public class PromoServiceImpl implements PromoService {
         } else {
             promoModel.setStatus(2);
         }
+        System.out.println(3);
+        System.out.println(promoModel);
         return promoModel;
     }
 

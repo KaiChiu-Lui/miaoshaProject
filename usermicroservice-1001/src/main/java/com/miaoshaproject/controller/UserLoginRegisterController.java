@@ -57,10 +57,11 @@ public class UserLoginRegisterController extends BaseController{
         UserModel userModel = userService.validateLogin(telphone, this.EncodeByMd5(password));
         //将登陆凭证加入到Redis和cookie中
         String randomId = UUID.randomUUID().toString().replaceAll("-","");
-        redisTemplate.opsForValue().set(randomId,userModel);
-        System.out.println(redisTemplate.opsForValue().get(randomId));
+        UserVO userVO = convertFromModel(userModel);
+        redisTemplate.opsForValue().set(randomId,userVO);
         Cookie cookie = new Cookie("is_login",randomId);
         cookie.setMaxAge(60*5); //过期时间五分钟
+        cookie.setPath("/");
         response.addCookie(cookie);
         // this.httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
         // this.httpServletRequest.getSession().setAttribute("LOGIN_USER", userModel);
@@ -137,6 +138,21 @@ public class UserLoginRegisterController extends BaseController{
         return userVO;
     }
 
+    @RequestMapping("/testLogin")
+    @ResponseBody
+    public CommonReturnType testlogin(@RequestParam(name = "telphone") String telphone,
+                                      @RequestParam(name = "password") String password,
+                                      HttpServletResponse httpServletResponse) throws Exception{
+        UserModel userModel = userService.validateLogin(telphone, this.EncodeByMd5(password));
+        UserVO userVO = convertFromModel(userModel);
+        String str = UUID.randomUUID().toString().replaceAll("-", "");
+        Cookie cookie = new Cookie("is_login", str);
+        redisTemplate.opsForValue().set(str,userVO);
+        cookie.setPath("/");
+        httpServletResponse.addCookie(cookie);
+        return CommonReturnType.create("成功");
+    }
+
     //判断某个用户是否登录 如果是则返回UserVO 否则返回null
     @RequestMapping("/islogin")
     @ResponseBody
@@ -156,37 +172,9 @@ public class UserLoginRegisterController extends BaseController{
         return CommonReturnType.create(redisTemplate.opsForValue().get(uid));
     }
 
-    @RequestMapping("/testLogin")
-    @ResponseBody
-    public CommonReturnType testLogin(@RequestParam(name = "telphone") String telphone,
-                                      @RequestParam(name = "password") String password,
-                                      HttpServletResponse response) throws BusinessException,
-            UnsupportedEncodingException,
-            NoSuchAlgorithmException{
-        //入参校验
-        if (StringUtils.isEmpty(telphone) || StringUtils.isEmpty(password)) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR);
-        }
-
-        //用户登录服务，用来校验用户登录是否合法
-        //用户加密后的密码
-        UserModel userModel = userService.validateLogin(telphone, this.EncodeByMd5(password));
-        //将登陆凭证加入到Redis和cookie中
-        String randomId = UUID.randomUUID().toString().replaceAll("-","");
-        redisTemplate.opsForValue().set(randomId,userModel);
-        System.out.println(redisTemplate.opsForValue().get(randomId));
-        Cookie cookie = new Cookie("is_login",randomId);
-        cookie.setMaxAge(60*5); //过期时间五分钟
-        response.addCookie(cookie);
-        // this.httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
-        // this.httpServletRequest.getSession().setAttribute("LOGIN_USER", userModel);
-        return CommonReturnType.create(null);
-    }
-
     @RequestMapping("/testIsLogin")
     @ResponseBody
     public CommonReturnType testIsLogin(@CookieValue(value = "is_login",required = false) String uid) throws BusinessException{
-        System.out.println(1);
         if(uid==null||redisTemplate.opsForValue().get(uid)==null){
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
         }

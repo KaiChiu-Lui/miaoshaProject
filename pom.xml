@@ -14,6 +14,7 @@
       <module>promomicroservice-4001</module>
       <module>paymentmicroservice-5001</module>
       <module>eurekaserver-6001</module>
+      <module>gatewayserver-7001</module>
   </modules>
   <!--  <packaging>pom</packaging>-->
 
@@ -100,6 +101,22 @@
         <version>${lombok.version}</version>
         <optional>true</optional>
       </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+        <version>2.7.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <version>2.2.2.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <version>2.2.2.RELEASE</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -110,11 +127,6 @@
   </parent>
 
   <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-redis</artifactId>
-      <version>2.7.1</version>
-    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -132,19 +144,12 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.7</version>
     </dependency>
-
     <!--校验-->
     <dependency>
       <groupId>org.hibernate</groupId>
@@ -169,11 +174,6 @@
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
       <version>4.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.alibaba.fastjson2</groupId>
@@ -252,11 +252,6 @@
           <artifactId>mybatis-generator-maven-plugin</artifactId>
           <version>1.3.5</version>
           <dependencies>
-            <dependency>
-              <groupId>org.mybatis.generator</groupId>
-              <artifactId>mybatis-generator-core</artifactId>
-              <version>1.3.5</version>
-            </dependency>
             <dependency>
               <groupId>mysql</groupId>
               <artifactId>mysql-connector-java</artifactId>

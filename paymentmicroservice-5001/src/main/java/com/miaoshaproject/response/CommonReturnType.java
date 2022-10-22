@@ -1,7 +1,5 @@
 package com.miaoshaproject.response;
 
-
-import com.miaoshaproject.service.model.UserModel;
 import lombok.Data;
 
 /**
@@ -17,8 +15,6 @@ public class CommonReturnType {
     //若status=success，则data内返回前端需要的json数据
     //若status=fail，则data内使用通用的错误码格式
     private Object data;
-
-    private UserModel user;
 
     //定义一个通用的创建方法
     public static CommonReturnType create(Object result) {
