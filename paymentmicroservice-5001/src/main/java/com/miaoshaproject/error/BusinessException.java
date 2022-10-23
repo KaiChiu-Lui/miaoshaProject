@@ -1,9 +1,5 @@
 package com.miaoshaproject.error;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-15  -21:45
- */
 //包装器业务异常实现
 public class BusinessException extends Exception implements CommonError {
 

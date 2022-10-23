@@ -2,13 +2,13 @@ package com.miaoshaproject.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.client.ItemFeignClient;
 import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.impl.PaymentServiceImpl;
-import com.miaoshaproject.service.model.UserModel;
 import com.netflix.discovery.converters.Auto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,6 +38,9 @@ public class PaymentController extends BaseController{
     @Autowired
     public UserFeignClient userFeignClient;
 
+    @Auto
+    private ItemFeignClient itemFeignClient;
+
     //封装下单请求
     @RequestMapping(value = "/createorder", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -46,18 +49,12 @@ public class PaymentController extends BaseController{
                                         @RequestParam(name = "promoId",required = false) Integer promoId,
                                         @RequestParam(name = "amount") Integer amount) throws BusinessException {
 
-        // System.out.println(uid);
-        // //获取用户登录信息
-        // if(uid==null||redisTemplate.opsForValue().get(uid)==null){
-        //     throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录,不能下单");
-        // }
-        // UserModel userModel = (UserModel) redisTemplate.opsForValue().get(uid);
-        // System.out.println(userModel);
         if(uid==null||redisTemplate.opsForValue().get(uid)==null){
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
         }
         UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
-        paymentService.createOrder(userVO.getId(), itemId, promoId, amount);
+        if(promoId==null) paymentService.createOrder(userVO.getId(), itemId, amount);
+        else paymentService.createPromoOrder(userVO.getId(), itemId, promoId,amount);
         return CommonReturnType.create(null);
     }
 
@@ -84,5 +81,15 @@ public class PaymentController extends BaseController{
         }
         UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
         return CommonReturnType.create(userVO);
+    }
+
+    @RequestMapping("/testReturnType")
+    @ResponseBody
+    public CommonReturnType testReturnType() throws BusinessException {
+        Integer itemId = 7;
+        System.out.println("itemId:"+itemId);
+        System.out.println(itemFeignClient.getItemByIdInCache(7)==null);
+        System.out.println(itemFeignClient.getItemByIdInCache(7).getClass());
+        return CommonReturnType.create(itemFeignClient.getItemByIdInCache(7).toString());
     }
 }

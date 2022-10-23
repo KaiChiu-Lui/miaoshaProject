@@ -1,10 +1,12 @@
 package com.miaoshaproject.controller.viewobject;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 
 @Data
+@ToString
 public class ItemVO {
     private Integer id;
 

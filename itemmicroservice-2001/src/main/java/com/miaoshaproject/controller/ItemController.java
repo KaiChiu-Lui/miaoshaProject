@@ -7,17 +7,21 @@ import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.ItemService;
+import com.miaoshaproject.service.impl.CacheServiceImpl;
 import com.miaoshaproject.service.model.ItemModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -28,10 +32,16 @@ import java.util.stream.Collectors;
 public class ItemController extends BaseController {
 
     @Autowired
+    private CacheServiceImpl cacheService;
+
+    @Autowired
     private ItemService itemService;
 
     @Autowired
     private PromoFeignClient promoFeignClient;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     //创建商品的controller
     @RequestMapping(value = "/create", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
@@ -48,7 +58,6 @@ public class ItemController extends BaseController {
         itemModel.setPrice(price);
         itemModel.setStock(stock);
         itemModel.setImgUrl(imgUrl);
-
         ItemModel itemModelForReturn = itemService.createItem(itemModel);
         ItemVO itemVO = convertVOFromModel(itemModelForReturn,null);
         return CommonReturnType.create(itemVO);
@@ -83,6 +92,7 @@ public class ItemController extends BaseController {
         return itemVO;
     }
 
+    //扣减普通商品库存
     @RequestMapping("/decreaseStock")
     @ResponseBody
     public CommonReturnType decreaseStock(Integer itemId,Integer amount) throws BusinessException{
@@ -99,17 +109,53 @@ public class ItemController extends BaseController {
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
-        CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
-        System.out.println(commonReturnType);
-        PromoVO promoVO = null;
-        if(commonReturnType.getData()!=null){
-            String str = JSON.toJSONString(commonReturnType.getData());
-            promoVO = JSONObject.parseObject(str, PromoVO.class);
+        ItemVO itemVO = null;
+        //获取本地缓存
+        itemVO = (ItemVO) cacheService.getFromCommonCache("item_"+id);
+        if(itemVO == null){
+            //获得Redis的缓存
+            itemVO = (ItemVO) redisTemplate.opsForValue().get("item_"+id);
+            if(itemVO==null){
+                CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
+                PromoVO promoVO = null;
+                if(commonReturnType.getData()!=null){
+                    String str = JSON.toJSONString(commonReturnType.getData());
+                    promoVO = JSONObject.parseObject(str, PromoVO.class);
+                }
+                ItemModel itemModel = itemService.getItemById(id);
+                itemVO = convertVOFromModel(itemModel,promoVO);
+                //更新redis缓存
+                redisTemplate.opsForValue().set("item_"+id,itemVO);
+                redisTemplate.expire("item_"+id,10, TimeUnit.MINUTES);
+            }
+            //更新guava缓存
+            cacheService.setCommonCache("item_"+id,itemVO);
         }
-        ItemModel itemModel = itemService.getItemById(id);
-        // System.out.println(promoVO);
-        ItemVO itemVO = convertVOFromModel(itemModel,promoVO);
         return CommonReturnType.create(itemVO);
+    }
+
+    @RequestMapping("/getItemByIdInCache")
+    @ResponseBody
+    public ItemVO getItemByIdInCache(Integer id) throws BusinessException{
+        System.out.println("ItemController.getItemByIdInCache");
+        System.out.println("itemId:"+id);
+        ItemVO itemVO = (ItemVO) redisTemplate.opsForValue().get("item_validate_"+id);
+        System.out.println(1);
+        if(itemVO == null){
+            System.out.println(2);
+            System.out.println("itemId:"+id);
+            CommonReturnType commonReturnType = this.getItem(id);
+            System.out.println("commonResultType:"+commonReturnType);
+            itemVO = JSONObject.parseObject(JSON.toJSONString(this.getItem(id).getData()),ItemVO.class);
+            System.out.println(3);
+            if(itemVO==null) throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
+            System.out.println(4);
+            redisTemplate.opsForValue().set("item_validate_"+id,itemVO);
+            redisTemplate.expire("item_validate_"+id,10, TimeUnit.MINUTES);
+        }
+        System.out.println(5);
+        System.out.println(itemVO);
+        return itemVO;
     }
 
     //商品列表页面浏览
@@ -151,4 +197,6 @@ public class ItemController extends BaseController {
         System.out.println(itemVO.getClass());
         System.out.println(itemVO);
     }
+
+
 }

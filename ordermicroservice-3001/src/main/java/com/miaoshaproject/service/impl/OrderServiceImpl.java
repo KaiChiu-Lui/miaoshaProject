@@ -8,10 +8,8 @@ import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.OrderService;
-import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.model.ItemModel;
 import com.miaoshaproject.service.model.OrderModel;
-import com.miaoshaproject.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,12 +25,6 @@ import java.util.List;
 
 @Service
 public class OrderServiceImpl implements OrderService {
-
-    @Autowired
-    private ItemService itemService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private OrderDOMapper orderDOMapper;

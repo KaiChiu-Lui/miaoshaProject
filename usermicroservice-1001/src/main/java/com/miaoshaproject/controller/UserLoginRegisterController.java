@@ -22,6 +22,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.miaoshaproject.controller.BaseController.CONTENT_TYPE_FORMED;
 
@@ -59,6 +60,7 @@ public class UserLoginRegisterController extends BaseController{
         String randomId = UUID.randomUUID().toString().replaceAll("-","");
         UserVO userVO = convertFromModel(userModel);
         redisTemplate.opsForValue().set(randomId,userVO);
+        redisTemplate.expire(randomId,5, TimeUnit.MINUTES);
         Cookie cookie = new Cookie("is_login",randomId);
         cookie.setMaxAge(60*5); //过期时间五分钟
         cookie.setPath("/");

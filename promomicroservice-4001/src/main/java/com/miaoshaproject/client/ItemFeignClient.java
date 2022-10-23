@@ -26,5 +26,6 @@ public interface ItemFeignClient {
     public CommonReturnType increaseSale(@RequestParam("itemId")Integer itemId,@RequestParam("amount") Integer amount) throws BusinessException;
 
     @RequestMapping("/getItemByIdInCache")
+    @ResponseBody
     public ItemVO getItemByIdInCache(@RequestParam("id") Integer id) throws BusinessException;
 }

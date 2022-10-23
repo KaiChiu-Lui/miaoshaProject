@@ -1,5 +1,7 @@
 package com.miaoshaproject.controller;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
@@ -9,12 +11,15 @@ import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.swing.plaf.nimbus.NimbusStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 @RequestMapping("/userm")
@@ -27,6 +32,8 @@ public class UserManagementController extends BaseController{
     @Autowired
     private HttpServletRequest httpServletRequest;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @RequestMapping("/get")
     @ResponseBody
@@ -46,6 +53,16 @@ public class UserManagementController extends BaseController{
         return CommonReturnType.create(userVO);
     }
 
+    @RequestMapping("/getUserByIdInCache")
+    public UserVO getUserByIdInCache(Integer id) throws BusinessException {
+        UserVO userVO = (UserVO) redisTemplate.opsForValue().get("user_validate_"+id);
+        if(userVO==null){
+            userVO = JSONObject.parseObject(JSON.toJSONString(this.getUser(id).getData()),UserVO.class);
+            redisTemplate.opsForValue().set("user_validate_"+id,userVO);
+            redisTemplate.expire("user_validate_"+id,10, TimeUnit.MINUTES);
+        }
+        return userVO;
+    }
 
     @RequestMapping("/list")
     @ResponseBody

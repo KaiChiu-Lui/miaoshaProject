@@ -15,6 +15,7 @@
       <module>paymentmicroservice-5001</module>
       <module>eurekaserver-6001</module>
       <module>gatewayserver-7001</module>
+      <module>common-api</module>
   </modules>
   <!--  <packaging>pom</packaging>-->
 

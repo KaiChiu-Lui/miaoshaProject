@@ -1,13 +1,8 @@
 package com.miaoshaproject.response;
 
 
-import com.miaoshaproject.service.model.UserModel;
 import lombok.Data;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-15  -18:00
- */
 @Data
 public class CommonReturnType {
 

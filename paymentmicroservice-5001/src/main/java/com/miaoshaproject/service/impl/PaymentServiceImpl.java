@@ -7,17 +7,18 @@ import com.miaoshaproject.client.PromoFeignClient;
 import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.controller.viewobject.UserVO;
-import com.miaoshaproject.dao.OrderDOMapper;
-import com.miaoshaproject.dao.SequenceDOMapper;
-import com.miaoshaproject.dataobject.OrderDO;
-import com.miaoshaproject.dataobject.SequenceDO;
+// import com.miaoshaproject.dao.OrderDOMapper;
+// import com.miaoshaproject.dao.SequenceDOMapper;
+// import com.miaoshaproject.dataobject.OrderDO;
+// import com.miaoshaproject.dataobject.SequenceDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.PaymentService;
-import com.miaoshaproject.service.UserService;
-import com.miaoshaproject.service.model.OrderModel;
-import com.miaoshaproject.service.model.UserModel;
+// import com.miaoshaproject.service.UserService;
+// import com.miaoshaproject.service.model.OrderModel;
+// import com.miaoshaproject.service.model.UserModel;
+import org.apache.catalina.User;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,9 +34,6 @@ import java.time.format.DateTimeFormatter;
 public class PaymentServiceImpl implements PaymentService{
 
     @Autowired
-    private SequenceDOMapper sequenceDOMapper;
-
-    @Autowired
     private ItemFeignClient itemFeignClient;
 
     @Autowired
@@ -47,61 +45,44 @@ public class PaymentServiceImpl implements PaymentService{
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private PromoFeignClient promoFeignClient;
+
     @Override
     @Transactional
-    public void createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException {
+    public void createOrder(Integer userId, Integer itemId, Integer amount) throws BusinessException {
         //1.下单的商品是否存在
-        CommonReturnType commonReturnType = itemFeignClient.getItem(itemId);
-        String str = JSON.toJSONString(commonReturnType.getData());
-        if(str==null){
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "商品信息不存在");
-        }
-        ItemVO itemVO = JSONObject.parseObject(str,ItemVO.class);
-        System.out.println("itemVO");
-        System.out.println(itemVO);
-
+        ItemVO itemVO = JSONObject.parseObject(JSON.toJSONString(itemFeignClient.getItem(itemId).getData()),ItemVO.class);
+       if(itemVO==null){
+           throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
+       }
         //2.用户是否登录
-        CommonReturnType userresult = userFeignClient.getUser(userId);
-        String s = JSON.toJSONString(commonReturnType.getData());
-        if(s==null){
+        UserVO userVO = JSONObject.parseObject(JSON.toJSONString(userFeignClient.getUser(userId).getData()), UserVO.class);
+        if (userVO == null) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
         }
-        JSONObject.parseObject(s, UserModel.class);
-
         //3.下单数量是否合法
         if (amount <= 0 || amount > 99) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "数量信息不存在");
         }
-
-        //4.活动信息是否正确
-        if (promoId != null) {
-            //(1)校验对应活动是否存在这个适用商品
-            if (promoId.intValue() != itemVO.getPromoId()) {
-                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
-                //(2)校验活动是否正在进行中
-            } else if (itemVO.getPromoStatus() != 2) {
-                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
-            }
-        }
-
+        //4.活动信息是否正确 //如果有活动才进行校验 无活动则不进行校验
+        // if (promoId != null) {
+        //     //(1)校验对应活动是否存在这个适用商品
+        //     if (promoId.intValue() != itemVO.getPromoId()) {
+        //         throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
+        //         //(2)校验活动是否正在进行中
+        //     } else if (itemVO.getPromoStatus() != 2) {
+        //         throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
+        //     }
+        // }
         //5.落单减库存
         boolean result = (boolean) itemFeignClient.decreaseStock(itemId,amount).getData();
         if (!result) {
             throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
         }
-
         //6.生成订单及其流水号
-        BigDecimal itemPrice;
-        if (promoId != null) {
-            itemPrice = itemVO.getPromoPrice();
-        } else {
-            itemPrice = itemVO.getPrice();
-        }
-        System.out.println("itemPrice");
-        System.out.println(itemPrice);
-
-
-        orderFeignClient.insertOrder(userId,itemId,promoId,amount,itemPrice.toString());
+        BigDecimal itemPrice = itemVO.getPrice();
+        orderFeignClient.insertOrder(userId,itemId,null,amount,itemPrice.toString());
 
         //7.加上商品的销量
         itemFeignClient.increaseSale(itemId,amount);
@@ -109,50 +90,54 @@ public class PaymentServiceImpl implements PaymentService{
         return;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    //不管该方法是否在事务中，都会开启一个新的事务，不管外部事务是否成功
-    //最终都会提交掉该事务，为了保证订单号的唯一性，防止下单失败后订单号的回滚
-    public String generateOrderNo() {
-        //订单有16位
-        StringBuilder stringBuilder = new StringBuilder();
-        //前8位为时间信息，年月日
-        LocalDateTime now = LocalDateTime.now();
-        String nowDate = now.format(DateTimeFormatter.ISO_DATE).replace("-", "");
-        stringBuilder.append(nowDate);
-
-        //中间6位为自增序列
-        //获取当前sequence
-        int sequence = 0;
-        SequenceDO sequenceDO = sequenceDOMapper.getSequenceByName("order_info");
-
-        sequence = sequenceDO.getCurrentValue();
-        sequenceDO.setCurrentValue(sequenceDO.getCurrentValue() + sequenceDO.getStep());
-        sequenceDOMapper.updateByPrimaryKeySelective(sequenceDO);
-        //拼接
-        String sequenceStr = String.valueOf(sequence);
-        for (int i = 0; i < 6 - sequenceStr.length(); i++) {
-            stringBuilder.append(0);
+    @Override
+    @Transactional
+    public void createPromoOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException{
+        System.out.println("正在进行活动商品下单接口的调用");
+        //1.下单的商品是否存在
+        ItemVO itemVO = itemFeignClient.getItemByIdInCache(itemId);
+        System.out.println(itemVO);
+        if(itemVO==null){
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
         }
-        stringBuilder.append(sequenceStr);
-
-        //最后两位为分库分表位,暂时不考虑
-        stringBuilder.append("00");
-
-        return stringBuilder.toString();
-    }
-
-    private OrderDO convertFromOrderModel(OrderModel orderModel) {
-        if (orderModel == null) {
-            return null;
+        //2.用户是否登录
+        UserVO userVO = userFeignClient.getUserByIdInCache(userId);
+        if (userVO == null) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
         }
-        OrderDO orderDO = new OrderDO();
-        BeanUtils.copyProperties(orderModel, orderDO);
-        return orderDO;
-    }
-    private OrderModel convertModelFromDO(OrderDO orderDO){
-        if(orderDO==null) return null;
-        OrderModel orderModel = new OrderModel();
-        BeanUtils.copyProperties(orderDO,orderModel);
-        return orderModel;
+        //3.下单数量是否合法
+        if (amount <= 0 || amount > 99) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "数量信息不存在");
+        }
+        //4.活动信息是否正确 //如果有活动才进行校验 无活动则不进行校验
+        if (promoId != null) {
+            System.out.println("promoId:"+promoId);
+            System.out.println("itemVO:"+itemVO.toString());
+            //(1)校验对应活动是否存在这个适用商品
+            if (promoId.intValue() != itemVO.getPromoId()) {
+                System.out.println("活动信息不正确");
+                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
+                //(2)校验活动是否正在进行中
+            } else if (itemVO.getPromoStatus() != 2) {
+                System.out.println("活动未开始或者已经结束了");
+                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动未开始或者已经结束了");
+            }
+            System.out.println("活动信息检查完毕");
+        }
+        //5.落单减库存
+        CommonReturnType commonReturnType = promoFeignClient.decreaseStock(itemId,amount);
+        if(commonReturnType.getStatus().equals("fail")){
+            throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH,"扣减库存失败");
+        }
+        System.out.println("完成了落单减库存");
+        //6.生成订单及其流水号
+        BigDecimal itemPrice = itemVO.getPromoPrice();
+        orderFeignClient.insertOrder(userId,itemId,promoId,amount,itemPrice.toString());
+        System.out.println("完成生成订单及其流水号");
+        //7.加上商品的销量
+        itemFeignClient.increaseSale(itemId,amount);
+        System.out.println("完成加上商品销量");
+        //4.返回前端
+        return;
     }
 }

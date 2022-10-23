@@ -12,11 +12,9 @@ import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.OrderService;
-import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.impl.OrderServiceImpl;
 import com.miaoshaproject.service.model.ItemModel;
 import com.miaoshaproject.service.model.OrderModel;
-import com.miaoshaproject.service.model.UserModel;
 import com.netflix.discovery.converters.Auto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,14 +80,7 @@ public class OrderController extends BaseController {
     @RequestMapping("/insert")
     @ResponseBody
     public CommonReturnType insertOrder(Integer userId, Integer itemId, Integer promoId, Integer amount, String itemPrice){
-        System.out.println("调用了orderController.insertOrder");
         BigDecimal bigDecimal = new BigDecimal(itemPrice);
-        System.out.println(userId);
-        System.out.println(itemId);
-        System.out.println(promoId);
-        System.out.println(amount);
-        System.out.println("itemPrice:"+bigDecimal);
-
         Integer insertResult = orderService.insertOrder(userId, itemId, promoId, amount, bigDecimal);
         return CommonReturnType.create(insertResult);
     }

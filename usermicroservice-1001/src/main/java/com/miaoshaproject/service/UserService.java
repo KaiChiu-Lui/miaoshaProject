@@ -5,10 +5,7 @@ import com.miaoshaproject.service.model.UserModel;
 
 import java.util.List;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-15  -15:50
- */
+
 public interface UserService {
     UserModel getUserById(Integer id);
 
@@ -23,4 +20,5 @@ public interface UserService {
     List<UserModel> list();
 
     int deleteUser(Integer userId);
+
 }

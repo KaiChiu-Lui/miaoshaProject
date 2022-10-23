@@ -12,10 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author KiroScarlet
- * @date 2019-05-15  -22:54
- */
+
 public class BaseController {
 
     public static final String CONTENT_TYPE_FORMED = "application/x-www-form-urlencoded";

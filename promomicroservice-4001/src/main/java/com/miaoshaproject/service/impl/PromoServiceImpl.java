@@ -1,12 +1,19 @@
 package com.miaoshaproject.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.client.ItemFeignClient;
+import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.dao.PromoDOMapper;
 import com.miaoshaproject.dataobject.PromoDO;
+import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.service.PromoService;
 import com.miaoshaproject.service.model.PromoModel;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +26,12 @@ public class PromoServiceImpl implements PromoService {
 
     @Autowired
     private PromoDOMapper promoDOMapper;
+
+    @Autowired
+    private ItemFeignClient itemFeignClient;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public PromoModel getPromoByPrimaryKey(Integer promoId) {
@@ -104,5 +117,20 @@ public class PromoServiceImpl implements PromoService {
         PromoDO promoDO = new PromoDO();
         BeanUtils.copyProperties(promoModel,promoDO);
         return promoDO;
+    }
+
+    @Override
+    public void publishPromo(Integer promoId) throws BusinessException{
+        //通过活动id获取活动
+        PromoDO promoDO = promoDOMapper.selectByPrimaryKey(promoId);
+        if(promoDO.getItemId() == null || promoDO.getItemId().intValue() == 0){
+            return;
+        }
+        ItemVO itemVO = JSONObject.parseObject(JSON.toJSONString(itemFeignClient.getItem(promoDO.getItemId()).getData()), ItemVO.class);
+        if(itemVO==null){
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"活动商品不存在");
+        }
+        //将库存同步到redis内
+        redisTemplate.opsForValue().set("promo_item_stock_"+itemVO.getId(), itemVO.getStock());
     }
 }
