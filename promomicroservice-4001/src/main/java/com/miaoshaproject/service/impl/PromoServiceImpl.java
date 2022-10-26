@@ -3,7 +3,9 @@ package com.miaoshaproject.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.miaoshaproject.client.ItemFeignClient;
+import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
+import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.dao.PromoDOMapper;
 import com.miaoshaproject.dataobject.PromoDO;
 import com.miaoshaproject.error.BusinessException;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -32,6 +36,9 @@ public class PromoServiceImpl implements PromoService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private UserFeignClient userFeignClient;
 
     @Override
     public PromoModel getPromoByPrimaryKey(Integer promoId) {
@@ -80,9 +87,9 @@ public class PromoServiceImpl implements PromoService {
 
         //判断当前时间是否秒杀活动即将开始或正在进行
         DateTime now = new DateTime();
-        if (promoModel.getStartDate().compareTo(new Date())==-1) {
+        if (promoModel.getStartDate().compareTo(new Date())>0) {
             promoModel.setStatus(1);
-        } else if (promoModel.getEndDate().compareTo(new Date())==1) {
+        } else if (promoModel.getEndDate().compareTo(new Date())<0) {
             promoModel.setStatus(3);
         } else {
             promoModel.setStatus(2);
@@ -132,5 +139,55 @@ public class PromoServiceImpl implements PromoService {
         }
         //将库存同步到redis内
         redisTemplate.opsForValue().set("promo_item_stock_"+itemVO.getId(), itemVO.getStock());
+    }
+
+    @Override
+    public String generateSecondKillToken(Integer promoId,Integer itemId,Integer userId) throws BusinessException{
+        //1.判断是否库存已售罄，若对应的售罄key存在，则直接返回下单失败
+        if(redisTemplate.hasKey("promo_item_stock_invalid_"+itemId)){
+            return null;
+        }
+        System.out.println("判断售罄完成");
+
+        //2.判断活动是否正在进行
+        System.out.println(1);
+        PromoDO promoDO = promoDOMapper.selectByPrimaryKey(promoId);
+        //dataobject->model
+        System.out.println(1);
+        PromoModel promoModel = convertFromDataObject(promoDO);
+        System.out.println(promoModel);
+        System.out.println(1);
+        if(promoModel == null){
+            return null;
+        }
+        System.out.println(1);
+        if(promoModel.getStatus().intValue() != 2){
+            return null;
+        }
+        System.out.println(1);
+        System.out.println("判断活动完成");
+
+        //3.判断item信息是否存在
+        ItemVO itemVO = itemFeignClient.getItemByIdInCache(itemId);
+        System.out.println(itemVO);
+        if(itemVO==null){
+            return null;
+        }
+        System.out.println("判断商品信息完成");
+
+        //4.判断用户信息是否存在
+        UserVO userVO = userFeignClient.getUserByIdInCache(userId);
+        if (userVO == null) {
+            return null;
+        }
+        System.out.println("判断用户信息完成");
+
+        //生成token并且存入redis内并给一个5分钟的有效期
+        String token = UUID.randomUUID().toString().replace("-","");
+        //生成对应的UserId->ItemId的5分钟的令牌
+        redisTemplate.opsForValue().set("promo_token_"+promoId+"_userid_"+userId+"_itemid_"+itemId,token);
+        redisTemplate.expire("promo_token_"+promoId+"_userid_"+userId+"_itemid_"+itemId,5, TimeUnit.MINUTES);
+        System.out.println("生成令牌完成");
+        return token;
     }
 }

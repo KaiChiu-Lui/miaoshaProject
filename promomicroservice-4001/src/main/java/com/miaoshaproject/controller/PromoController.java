@@ -1,6 +1,7 @@
 package com.miaoshaproject.controller;
 
 import com.miaoshaproject.controller.viewobject.PromoVO;
+import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.dataobject.PromoDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
@@ -115,8 +116,7 @@ public class PromoController extends BaseController{
         if(result >0){
             //更新库存成功
             //并异步向数据库扣减库存
-            Boolean bool = mqProducer.asyncReduceStock(itemId,amount);
-            return CommonReturnType.create(bool);
+            return CommonReturnType.create(null);
         }else if(result == 0){
             //打上库存已售罄的标识
             redisTemplate.opsForValue().set("promo_item_stock_invalid_"+itemId,"true");
@@ -136,6 +136,27 @@ public class PromoController extends BaseController{
         Long result = redisTemplate.opsForValue().decrement("promo_item_stock_"+itemId,amount.intValue() * -1);
         if(result==null) throw new BusinessException(EmBusinessError.UNKNOWN_ERROR,"库存回滚失败,原因未知");
         return CommonReturnType.create(result);
+    }
+
+    @RequestMapping(value = "/generatetoken",method = {RequestMethod.POST},consumes={CONTENT_TYPE_FORMED})
+    @ResponseBody
+    public CommonReturnType generatetoken(@CookieValue(value = "is_login",required = false) String uid,
+                                          @RequestParam(name="itemId")Integer itemId,
+                                          @RequestParam(name="promoId")Integer promoId) throws BusinessException {
+        //1.根据token获取用户信息
+        if(uid==null||redisTemplate.opsForValue().get(uid)==null){
+            throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录,无法下单");
+        }
+        UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
+
+        //2.获取秒杀访问令牌
+        String promoToken = promoService.generateSecondKillToken(promoId,itemId,userVO.getId());
+
+        if(promoToken == null){
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"生成令牌失败");
+        }
+        //返回对应的结果
+        return CommonReturnType.create(promoToken);
     }
 
     public PromoVO convertFromModel(PromoModel promoModel){
@@ -158,4 +179,6 @@ public class PromoController extends BaseController{
         Integer amount = 7;
         return CommonReturnType.create(mqProducer.asyncReduceStock(itemId,amount));
     }
+
+
 }

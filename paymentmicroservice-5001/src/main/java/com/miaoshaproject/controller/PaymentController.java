@@ -51,7 +51,8 @@ public class PaymentController extends BaseController{
     public CommonReturnType createOrder(@CookieValue(value = "is_login",required = false) String uid,
                                         @RequestParam(name = "itemId") Integer itemId,
                                         @RequestParam(name = "promoId",required = false) Integer promoId,
-                                        @RequestParam(name = "amount") Integer amount) throws BusinessException {
+                                        @RequestParam(name = "amount") Integer amount,
+                                        @RequestParam(name="promoToken",required = false) String promoToken) throws BusinessException {
 
         if(uid==null||redisTemplate.opsForValue().get(uid)==null){
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
@@ -61,10 +62,18 @@ public class PaymentController extends BaseController{
         //再去完成对应的下单事务型消息机制
         if(promoId==null) paymentService.createOrder(userVO.getId(), itemId, amount);
         else{
-            // paymentService.createPromoOrder(userVO.getId(), itemId, promoId,amount);
-            if(redisTemplate.hasKey("promo_item_stock_invalid_"+itemId)){
-                throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
+            //对商品售罄的判断改成对秒杀令牌进行校验
+            // if(redisTemplate.hasKey("promo_item_stock_invalid_"+itemId)){
+            //     throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
+            // }
+            String inRedisPromoToken = (String) redisTemplate.opsForValue().get("promo_token_"+promoId+"_userid_"+userVO.getId()+"_itemid_"+itemId);
+            if(inRedisPromoToken == null){
+                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"秒杀令牌校验失败");
             }
+            if(!org.apache.commons.lang3.StringUtils.equals(promoToken,inRedisPromoToken)){
+                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"秒杀令牌校验失败");
+            }
+
             //加入库存流水init状态
             String stockLogId = paymentService.initStockLog(itemId,amount);
             if(!mqProducer.transactionAsyncReduceStock(userVO.getId(),itemId,promoId,amount,stockLogId)){

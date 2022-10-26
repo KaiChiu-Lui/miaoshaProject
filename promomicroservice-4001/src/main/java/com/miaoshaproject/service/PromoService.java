@@ -23,4 +23,6 @@ public interface PromoService {
     int insertPromo(PromoModel promoModel);
 
     public void publishPromo(Integer promoId)  throws BusinessException;
+
+    public String generateSecondKillToken(Integer promoId,Integer itemId,Integer userId) throws BusinessException;
 }

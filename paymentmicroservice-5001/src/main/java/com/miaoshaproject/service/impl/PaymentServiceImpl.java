@@ -81,6 +81,7 @@ public class PaymentServiceImpl implements PaymentService{
         //         throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
         //     }
         // }
+
         //5.落单减库存
         boolean result = (boolean) itemFeignClient.decreaseStock(itemId,amount).getData();
         if (!result) {
@@ -102,40 +103,38 @@ public class PaymentServiceImpl implements PaymentService{
         System.out.println("正在进行活动商品下单接口的调用");
         //1.下单的商品是否存在
         ItemVO itemVO = itemFeignClient.getItemByIdInCache(itemId);
-        System.out.println(itemVO);
         if(itemVO==null){
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
         }
         //2.用户是否登录
-        UserVO userVO = userFeignClient.getUserByIdInCache(userId);
-        if (userVO == null) {
-            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
-        }
+        // UserVO userVO = userFeignClient.getUserByIdInCache(userId);
+        // if (userVO == null) {
+        //     throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "用户信息不存在");
+        // }
         //3.下单数量是否合法
         if (amount <= 0 || amount > 99) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "数量信息不存在");
         }
         //4.活动信息是否正确 //如果有活动才进行校验 无活动则不进行校验
-        if (promoId != null) {
-            System.out.println("promoId:"+promoId);
-            System.out.println("itemVO:"+itemVO.toString());
-            //(1)校验对应活动是否存在这个适用商品
-            if (promoId.intValue() != itemVO.getPromoId()) {
-                System.out.println("活动信息不正确");
-                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
-                //(2)校验活动是否正在进行中
-            } else if (itemVO.getPromoStatus() != 2) {
-                System.out.println("活动未开始或者已经结束了");
-                throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动未开始或者已经结束了");
-            }
-            System.out.println("活动信息检查完毕");
-        }
+        // if (promoId != null) {
+        //     //(1)校验对应活动是否存在这个适用商品
+        //     if (promoId.intValue() != itemVO.getPromoId()) {
+        //         System.out.println("活动信息不正确");
+        //         throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
+        //         //(2)校验活动是否正在进行中
+        //     } else if (itemVO.getPromoStatus() != 2) {
+        //         System.out.println("活动未开始或者已经结束了");
+        //         throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动未开始或者已经结束了");
+        //     }
+        //     System.out.println("活动信息检查完毕");
+        // }
         //5.落单减库存
         CommonReturnType commonReturnType = promoFeignClient.decreaseStock(itemId,amount);
         if(commonReturnType.getStatus().equals("fail")){
             throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH,"扣减库存失败");
         }
         System.out.println("完成了落单减库存");
+
         //6.生成订单及其流水号
         BigDecimal itemPrice = itemVO.getPromoPrice();
         orderFeignClient.insertOrder(userId,itemId,promoId,amount,itemPrice.toString());
@@ -170,4 +169,5 @@ public class PaymentServiceImpl implements PaymentService{
 
         return stockLogDO.getStockLogId();
     }
+
 }
