@@ -10,10 +10,8 @@ import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
-import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.OrderService;
 import com.miaoshaproject.service.impl.OrderServiceImpl;
-import com.miaoshaproject.service.model.ItemModel;
 import com.miaoshaproject.service.model.OrderModel;
 import com.netflix.discovery.converters.Auto;
 import org.springframework.beans.BeanUtils;
@@ -22,13 +20,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 
-@Controller("order")
+@Controller
 @RequestMapping("/order")
 @CrossOrigin(origins = {"*"}, allowCredentials = "true")
 public class OrderController extends BaseController {
@@ -83,5 +80,11 @@ public class OrderController extends BaseController {
         BigDecimal bigDecimal = new BigDecimal(itemPrice);
         Integer insertResult = orderService.insertOrder(userId, itemId, promoId, amount, bigDecimal);
         return CommonReturnType.create(insertResult);
+    }
+
+    @RequestMapping("/testOrder")
+    @ResponseBody
+    public CommonReturnType testOrder(){
+        return CommonReturnType.create("接口正常");
     }
 }

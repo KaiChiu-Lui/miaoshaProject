@@ -4,6 +4,7 @@ import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.dataobject.PromoDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
+import com.miaoshaproject.mq.MqProducer;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.PromoService;
 import com.miaoshaproject.service.impl.PromoServiceImpl;
@@ -33,6 +34,9 @@ public class PromoController extends BaseController{
 
     @Autowired
     private PromoServiceImpl promoService;
+
+    @Autowired
+    private MqProducer mqProducer;
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -111,7 +115,8 @@ public class PromoController extends BaseController{
         if(result >0){
             //更新库存成功
             //并异步向数据库扣减库存
-            return CommonReturnType.create(null);
+            Boolean bool = mqProducer.asyncReduceStock(itemId,amount);
+            return CommonReturnType.create(bool);
         }else if(result == 0){
             //打上库存已售罄的标识
             redisTemplate.opsForValue().set("promo_item_stock_invalid_"+itemId,"true");
@@ -144,5 +149,13 @@ public class PromoController extends BaseController{
         PromoModel promoModel = new PromoModel();
         BeanUtils.copyProperties(promoVO,promoModel);
         return promoModel;
+    }
+
+    @RequestMapping("/testMQ")
+    @ResponseBody
+    public CommonReturnType testMQ(){
+        Integer itemId = 7;
+        Integer amount = 7;
+        return CommonReturnType.create(mqProducer.asyncReduceStock(itemId,amount));
     }
 }
