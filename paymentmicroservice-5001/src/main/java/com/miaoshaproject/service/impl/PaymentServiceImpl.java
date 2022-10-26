@@ -11,6 +11,8 @@ import com.miaoshaproject.controller.viewobject.UserVO;
 // import com.miaoshaproject.dao.SequenceDOMapper;
 // import com.miaoshaproject.dataobject.OrderDO;
 // import com.miaoshaproject.dataobject.SequenceDO;
+import com.miaoshaproject.dao.StockLogDOMapper;
+import com.miaoshaproject.dataobject.StockLogDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -47,6 +50,9 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Autowired
     private PromoFeignClient promoFeignClient;
+
+    @Autowired
+    private StockLogDOMapper stockLogDOMapper;
 
     @Override
     @Transactional
@@ -92,7 +98,7 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     @Transactional
-    public void createPromoOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException{
+    public void createPromoOrder(Integer userId, Integer itemId, Integer promoId, Integer amount,String stockLogId) throws BusinessException{
         System.out.println("正在进行活动商品下单接口的调用");
         //1.下单的商品是否存在
         ItemVO itemVO = itemFeignClient.getItemByIdInCache(itemId);
@@ -137,7 +143,31 @@ public class PaymentServiceImpl implements PaymentService{
         //7.加上商品的销量
         itemFeignClient.increaseSale(itemId,amount);
         System.out.println("完成加上商品销量");
+
+        //8.设置库存流水状态为成功
+        StockLogDO stockLogDO = stockLogDOMapper.selectByPrimaryKey(stockLogId);
+        if(stockLogDO == null){
+            throw new BusinessException(EmBusinessError.UNKNOWN_ERROR);
+        }
+        stockLogDO.setStatus(2);
+        stockLogDOMapper.updateByPrimaryKeySelective(stockLogDO);
+        System.out.println("修改库存流水的信息完成");
+
         //4.返回前端
         return;
+    }
+
+    @Override
+    @Transactional
+    public String initStockLog(Integer itemId, Integer amount) {
+        StockLogDO stockLogDO = new StockLogDO();
+        stockLogDO.setItemId(itemId);
+        stockLogDO.setAmount(amount);
+        stockLogDO.setStockLogId(UUID.randomUUID().toString().replace("-",""));
+        stockLogDO.setStatus(1);
+
+        stockLogDOMapper.insertSelective(stockLogDO);
+
+        return stockLogDO.getStockLogId();
     }
 }

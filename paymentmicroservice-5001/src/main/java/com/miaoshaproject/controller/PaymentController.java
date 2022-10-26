@@ -7,6 +7,7 @@ import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
+import com.miaoshaproject.mq.MqProducer;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.impl.PaymentServiceImpl;
 import com.netflix.discovery.converters.Auto;
@@ -38,8 +39,11 @@ public class PaymentController extends BaseController{
     @Autowired
     public UserFeignClient userFeignClient;
 
-    @Auto
+    @Autowired
     private ItemFeignClient itemFeignClient;
+
+    @Autowired
+    private MqProducer mqProducer;
 
     //封装下单请求
     @RequestMapping(value = "/createorder", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
@@ -53,8 +57,20 @@ public class PaymentController extends BaseController{
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
         }
         UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
+
+        //再去完成对应的下单事务型消息机制
         if(promoId==null) paymentService.createOrder(userVO.getId(), itemId, amount);
-        else paymentService.createPromoOrder(userVO.getId(), itemId, promoId,amount);
+        else{
+            // paymentService.createPromoOrder(userVO.getId(), itemId, promoId,amount);
+            if(redisTemplate.hasKey("promo_item_stock_invalid_"+itemId)){
+                throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
+            }
+            //加入库存流水init状态
+            String stockLogId = paymentService.initStockLog(itemId,amount);
+            if(!mqProducer.transactionAsyncReduceStock(userVO.getId(),itemId,promoId,amount,stockLogId)){
+                throw new BusinessException(EmBusinessError.UNKNOWN_ERROR,"MQ执行本地事务失败");
+            }
+        }
         return CommonReturnType.create(null);
     }
 
