@@ -176,3 +176,12 @@ INSERT INTO `user_password` VALUES (23, 'xMpCOKC5I4INzFCab3WEmw==', 53);
 INSERT INTO `user_password` VALUES (24, 'xMpCOKC5I4INzFCab3WEmw==', 55);
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+CREATE TABLE `stock_log` (
+  `stock_log_id` varchar(64) NOT NULL,
+  `item_id` int DEFAULT '0',
+  `amount` int DEFAULT '0',
+  `status` int DEFAULT '0',
+  PRIMARY KEY (`stock_log_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci

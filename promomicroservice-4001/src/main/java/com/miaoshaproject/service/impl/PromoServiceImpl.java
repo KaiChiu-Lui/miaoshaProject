@@ -140,6 +140,7 @@ public class PromoServiceImpl implements PromoService {
         }
         //将库存同步到redis内
         redisTemplate.opsForValue().set("promo_item_stock_"+itemVO.getId(), itemVO.getStock());
+        redisTemplate.expire("promo_item_stock_"+itemVO.getId(),10,TimeUnit.MINUTES);
     }
 
     @Override

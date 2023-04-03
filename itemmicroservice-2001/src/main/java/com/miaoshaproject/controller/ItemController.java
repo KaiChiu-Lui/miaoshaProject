@@ -152,20 +152,14 @@ public class ItemController extends BaseController {
     @RequestMapping("/getItemByIdInCache")
     @ResponseBody
     public ItemVO getItemByIdInCache(Integer id) throws BusinessException{
-        System.out.println("ItemController.getItemByIdInCache");
-        System.out.println("itemId:"+id);
         ItemVO itemVO = (ItemVO) redisTemplate.opsForValue().get("item_validate_"+id);
         if(itemVO == null){
-            System.out.println("itemId:"+id);
             CommonReturnType commonReturnType = this.getItem(id);
-            System.out.println("commonResultType:"+commonReturnType);
             itemVO = JSONObject.parseObject(JSON.toJSONString(this.getItem(id).getData()),ItemVO.class);
             if(itemVO==null) throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
             redisTemplate.opsForValue().set("item_validate_"+id,itemVO);
             redisTemplate.expire("item_validate_"+id,10, TimeUnit.MINUTES);
         }
-        System.out.println(5);
-        System.out.println(itemVO);
         return itemVO;
     }
 
