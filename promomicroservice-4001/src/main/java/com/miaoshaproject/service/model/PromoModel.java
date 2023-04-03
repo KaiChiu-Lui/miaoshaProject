@@ -1,12 +1,18 @@
 package com.miaoshaproject.service.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class PromoModel {
     private Integer id;
 

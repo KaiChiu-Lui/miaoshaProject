@@ -5,6 +5,7 @@ import com.miaoshaproject.dao.UserPasswordDOMapper;
 import com.miaoshaproject.dataobject.UserDO;
 import com.miaoshaproject.dataobject.UserPasswordDO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.model.UserModel;
@@ -83,7 +84,12 @@ public class UserServiceImpl implements UserService {
         userModel.setId(userDO.getId());
 
         UserPasswordDO userPasswordDO = convertPasswordFromModel(userModel);
-        userPasswordDOMapper.insertSelective(userPasswordDO);
+        try{
+            userPasswordDOMapper.insertSelective(userPasswordDO);
+        }
+        catch (Exception e){
+            throw new BusinessException(new CommonException("userPasswordDOMapper.insertSelective异常"));
+        }
 
         return;
     }

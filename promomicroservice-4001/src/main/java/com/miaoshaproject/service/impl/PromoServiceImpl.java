@@ -9,6 +9,7 @@ import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.dao.PromoDOMapper;
 import com.miaoshaproject.dataobject.PromoDO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.service.PromoService;
 import com.miaoshaproject.service.model.PromoModel;
@@ -145,49 +146,41 @@ public class PromoServiceImpl implements PromoService {
     public String generateSecondKillToken(Integer promoId,Integer itemId,Integer userId) throws BusinessException{
         //1.判断是否库存已售罄，若对应的售罄key存在，则直接返回下单失败
         if(redisTemplate.hasKey("promo_item_stock_invalid_"+itemId)){
+            System.out.println("商品售罄");
             return null;
         }
         System.out.println("判断售罄完成");
 
         //2.判断活动是否正在进行
-        System.out.println(1);
         PromoDO promoDO = promoDOMapper.selectByPrimaryKey(promoId);
         //dataobject->model
-        System.out.println(1);
         PromoModel promoModel = convertFromDataObject(promoDO);
-        System.out.println(promoModel);
-        System.out.println(1);
         if(promoModel == null){
-            return null;
+            throw new BusinessException(new CommonException("商品没有相关的活动信息"));
         }
-        System.out.println(1);
-        if(promoModel.getStatus().intValue() != 2){
-            return null;
+        if(promoModel.getStatus()!= 2){
+            throw new BusinessException(new CommonException("商品不处于活动状态"));
         }
-        System.out.println(1);
-        System.out.println("判断活动完成");
 
         //3.判断item信息是否存在
         ItemVO itemVO = itemFeignClient.getItemByIdInCache(itemId);
         System.out.println(itemVO);
         if(itemVO==null){
-            return null;
+            throw new BusinessException(new CommonException("没有查询到对应的商品"));
         }
         System.out.println("判断商品信息完成");
 
         //4.判断用户信息是否存在
         UserVO userVO = userFeignClient.getUserByIdInCache(userId);
         if (userVO == null) {
-            return null;
+            throw new BusinessException(new CommonException("没有相应的用户信息"));
         }
-        System.out.println("判断用户信息完成");
 
         //生成token并且存入redis内并给一个5分钟的有效期
         String token = UUID.randomUUID().toString().replace("-","");
         //生成对应的UserId->ItemId的5分钟的令牌
         redisTemplate.opsForValue().set("promo_token_"+promoId+"_userid_"+userId+"_itemid_"+itemId,token);
         redisTemplate.expire("promo_token_"+promoId+"_userid_"+userId+"_itemid_"+itemId,5, TimeUnit.MINUTES);
-        System.out.println("生成令牌完成");
         return token;
     }
 }

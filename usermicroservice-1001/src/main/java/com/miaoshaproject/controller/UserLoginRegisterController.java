@@ -2,6 +2,8 @@ package com.miaoshaproject.controller;
 
 import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.CommonError;
+import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.UserService;
@@ -62,7 +64,7 @@ public class UserLoginRegisterController extends BaseController{
         redisTemplate.opsForValue().set(randomId,userVO);
         redisTemplate.expire(randomId,5, TimeUnit.MINUTES);
         Cookie cookie = new Cookie("is_login",randomId);
-        cookie.setMaxAge(60*5); //过期时间五分钟
+        cookie.setMaxAge(60*5*6); //过期时间五分钟->30分钟
         cookie.setPath("/");
         response.addCookie(cookie);
         // this.httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
@@ -82,9 +84,11 @@ public class UserLoginRegisterController extends BaseController{
 
         //验证手机号和对应的otpCode相符合
         String inSessionOtpCode = (String) this.httpServletRequest.getSession().getAttribute(telphone);
+        System.out.println("opt:"+inSessionOtpCode);
         if (!com.alibaba.druid.util.StringUtils.equals(otpCode, inSessionOtpCode)) {
             throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "短信验证码不符合");
         }
+        System.out.println(1);
         //用户的注册流程
         UserModel userModel = new UserModel();
         userModel.setName(name);
@@ -92,23 +96,29 @@ public class UserLoginRegisterController extends BaseController{
         userModel.setGender(Byte.valueOf(gender));
         userModel.setTelphone(telphone);
         userModel.setRegisitMode("byphone");
-
         //密码加密
         userModel.setEncrptPassword(this.EncodeByMd5(password));
-
-        userService.register(userModel);
+        try{
+            userService.register(userModel);
+        }catch (Exception e){
+            throw new BusinessException(new CommonException("userService.register执行异常"));
+        }
         return CommonReturnType.create(null);
 
     }
 
     //密码加密
-    public String EncodeByMd5(String str) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        //确定计算方法
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-        BASE64Encoder base64en = new BASE64Encoder();
-        //加密字符串
-        String newstr = base64en.encode(md5.digest(str.getBytes("utf-8")));
-        return newstr;
+    public String EncodeByMd5(String str) throws NoSuchAlgorithmException, UnsupportedEncodingException,BusinessException {
+        try{
+            //确定计算方法
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            BASE64Encoder base64en = new BASE64Encoder();
+            //加密字符串
+            String newstr = base64en.encode(md5.digest(str.getBytes("utf-8")));
+            return newstr;
+        }catch (Exception e){
+            throw new BusinessException(new CommonException("md5加密算法异常"));
+        }
     }
 
     //用户获取otp短信接口

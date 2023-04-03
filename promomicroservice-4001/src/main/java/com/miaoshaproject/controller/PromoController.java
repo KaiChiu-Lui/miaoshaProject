@@ -10,9 +10,6 @@ import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.PromoService;
 import com.miaoshaproject.service.impl.PromoServiceImpl;
 import com.miaoshaproject.service.model.PromoModel;
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import org.apache.ibatis.executor.loader.CglibProxyFactory;
-import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -39,7 +36,7 @@ public class PromoController extends BaseController{
     @Autowired
     private MqProducer mqProducer;
 
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @RequestMapping("/get")
     @ResponseBody
@@ -96,6 +93,7 @@ public class PromoController extends BaseController{
         return CommonReturnType.create(result);
     }
 
+    //缓存预热
     @RequestMapping(value = "/publishpromo",method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType publishpromo(@RequestParam(name = "id") Integer promoId) throws BusinessException {
