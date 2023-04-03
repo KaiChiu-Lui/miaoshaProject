@@ -19,6 +19,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.9.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.5</version>
+        </dependency>
+        <dependency>
             <groupId>com.miaoshaproject</groupId>
             <artifactId>common-api</artifactId>
             <version>1.0-SNAPSHOT</version>

@@ -1,12 +1,20 @@
 package com.miaoshaproject.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.springframework.stereotype.Component;
 
 /**
  * @author KiroScarlet
  * @date 2019-05-15  -18:00
  */
+@ToString
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Component
 public class CommonReturnType {
 
     //表明对应请求的返回处理结果“success”或“fail”

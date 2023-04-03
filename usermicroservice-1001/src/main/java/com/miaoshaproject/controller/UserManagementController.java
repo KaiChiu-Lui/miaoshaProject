@@ -30,9 +30,6 @@ public class UserManagementController extends BaseController{
 
     @Autowired
     private UserService userService;
-    
-    @Autowired
-    private HttpServletRequest httpServletRequest;
 
     @Autowired
     private RedisTemplate redisTemplate;

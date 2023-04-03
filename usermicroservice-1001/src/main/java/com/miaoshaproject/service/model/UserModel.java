@@ -1,5 +1,10 @@
 package com.miaoshaproject.service.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -9,6 +14,10 @@ import javax.validation.constraints.NotNull;
  * @author KiroScarlet
  * @date 2019-05-15  -16:50
  */
+@ToString
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserModel {
     private Integer id;
 

@@ -1,10 +1,17 @@
 package com.miaoshaproject.error;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 /**
  * @author KiroScarlet
  * @date 2019-05-15  -21:45
  */
 //包装器业务异常实现
+@Data
+@ToString
+@NoArgsConstructor
 public class BusinessException extends Exception implements CommonError {
 
     private CommonError commonError;

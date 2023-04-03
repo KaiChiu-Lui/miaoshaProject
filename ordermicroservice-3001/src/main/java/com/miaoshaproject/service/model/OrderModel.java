@@ -1,5 +1,11 @@
 package com.miaoshaproject.service.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 
 /**
@@ -7,6 +13,11 @@ import java.math.BigDecimal;
  * @date 2019-05-21  -20:13
  */
 //用户下单的交易模型
+@ToString
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Component
 public class OrderModel {
     //交易单号，例如2019052100001212，使用string类型
     private String id;

@@ -1,10 +1,15 @@
 package com.miaoshaproject.dataobject;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.stereotype.Component;
 
-@Component
+@ToString
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDO {
 
     private Integer id;
