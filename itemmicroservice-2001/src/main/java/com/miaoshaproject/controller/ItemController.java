@@ -109,27 +109,42 @@ public class ItemController extends BaseController {
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
+        //当商品是活动商品时才获取和设置缓存
+        CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
+        PromoVO promoVO = null;
+        ItemModel itemModel = null;
         ItemVO itemVO = null;
-        //获取本地缓存
-        itemVO = (ItemVO) cacheService.getFromCommonCache("item_"+id);
-        if(itemVO == null){
-            //获得Redis的缓存
-            itemVO = (ItemVO) redisTemplate.opsForValue().get("item_"+id);
-            if(itemVO==null){
-                CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
-                PromoVO promoVO = null;
-                if(commonReturnType.getData()!=null){
-                    String str = JSON.toJSONString(commonReturnType.getData());
-                    promoVO = JSONObject.parseObject(str, PromoVO.class);
+        if(commonReturnType!=null&&commonReturnType.getData()!=null){
+            String str = JSON.toJSONString(commonReturnType.getData());
+            promoVO = JSONObject.parseObject(str, PromoVO.class);
+            if(promoVO.getStatus()==2){
+                //活动进行中 从缓冲中获取商品详情
+                //获取本地缓存
+                itemVO = (ItemVO) cacheService.getFromCommonCache("item_"+id);
+                if(itemVO == null){
+                    //获得Redis的缓存
+                    itemVO = (ItemVO) redisTemplate.opsForValue().get("item_"+id);
+                    if(itemVO==null){
+                        itemModel = itemService.getItemById(id);
+                        itemVO = convertVOFromModel(itemModel,promoVO);
+                        //更新redis缓存
+                        redisTemplate.opsForValue().set("item_"+id,itemVO);
+                        redisTemplate.expire("item_"+id,10, TimeUnit.MINUTES);
+                    }
+                    //更新guava缓存
+                    cacheService.setCommonCache("item_"+id,itemVO);
                 }
-                ItemModel itemModel = itemService.getItemById(id);
-                itemVO = convertVOFromModel(itemModel,promoVO);
-                //更新redis缓存
-                redisTemplate.opsForValue().set("item_"+id,itemVO);
-                redisTemplate.expire("item_"+id,10, TimeUnit.MINUTES);
             }
-            //更新guava缓存
-            cacheService.setCommonCache("item_"+id,itemVO);
+            else{
+                //如果不是正在处于活动状态的商品 直接从数据库中获取数据
+                itemModel = itemService.getItemById(id);
+                itemVO = convertVOFromModel(itemModel,promoVO);
+            }
+        }
+        else{
+            //不是活动商品
+            itemModel = itemService.getItemById(id);
+            itemVO = convertVOFromModel(itemModel,null);
         }
         return CommonReturnType.create(itemVO);
     }

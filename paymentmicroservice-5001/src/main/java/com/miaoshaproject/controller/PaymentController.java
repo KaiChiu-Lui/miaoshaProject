@@ -52,7 +52,9 @@ public class PaymentController extends BaseController{
                                         @RequestParam(name = "itemId") Integer itemId,
                                         @RequestParam(name = "promoId",required = false) Integer promoId,
                                         @RequestParam(name = "amount") Integer amount,
-                                        @RequestParam(name="promoToken",required = false) String promoToken) throws BusinessException {
+                                        @RequestParam(name="promoToken",required = false) String promoToken,
+                                        @RequestParam(name = "promoStatus",required = false) Integer promoStatus
+    ) throws BusinessException {
 
         if(uid==null||redisTemplate.opsForValue().get(uid)==null){
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户未登录");
@@ -60,7 +62,7 @@ public class PaymentController extends BaseController{
         UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
 
         //再去完成对应的下单事务型消息机制
-        if(promoId==null) paymentService.createOrder(userVO.getId(), itemId, amount);
+        if(promoId==null||(promoStatus!=null&&promoStatus!=2)) paymentService.createOrder(userVO.getId(), itemId, amount);
         else{
             //对商品售罄的判断改成对秒杀令牌进行校验
             // if(redisTemplate.hasKey("promo_item_stock_invalid_"+itemId)){
