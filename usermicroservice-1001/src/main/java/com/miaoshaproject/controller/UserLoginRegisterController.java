@@ -2,7 +2,6 @@ package com.miaoshaproject.controller;
 
 import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
-import com.miaoshaproject.error.CommonError;
 import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;

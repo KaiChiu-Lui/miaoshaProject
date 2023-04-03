@@ -164,11 +164,6 @@
       <version>1.2.17</version>
     </dependency>
     <dependency>
-      <groupId>com.miaoshaproject</groupId>
-      <artifactId>common-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjweaver</artifactId>
       <version>1.9.9.1</version>
