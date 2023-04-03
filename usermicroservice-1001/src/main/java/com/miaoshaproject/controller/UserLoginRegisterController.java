@@ -8,6 +8,8 @@ import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.model.UserModel;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,6 +33,8 @@ import static com.miaoshaproject.controller.BaseController.CONTENT_TYPE_FORMED;
 @RequestMapping("/userlr")
 @CrossOrigin(allowCredentials = "true",allowedHeaders = "*") //@CrossOrigin解决跨域请求错误
 public class UserLoginRegisterController extends BaseController{
+
+    private static final Logger logger = LoggerFactory.getLogger(UserLoginRegisterController.class);
 
     @Autowired
     public RedisTemplate redisTemplate;
