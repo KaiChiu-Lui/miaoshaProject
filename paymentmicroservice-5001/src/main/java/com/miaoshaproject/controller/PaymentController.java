@@ -78,7 +78,15 @@ public class PaymentController extends BaseController{
 
             //加入库存流水init状态
             String stockLogId = paymentService.initStockLog(itemId,amount);
-            if(!mqProducer.transactionAsyncReduceStock(userVO.getId(),itemId,promoId,amount,stockLogId)){
+            Boolean result = null;
+            try{
+                result = mqProducer.transactionAsyncReduceStock(userVO.getId(),itemId,promoId,amount,stockLogId);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                throw e;
+            }
+            if(!result){
                 throw new BusinessException(EmBusinessError.UNKNOWN_ERROR,"MQ执行本地事务失败");
             }
         }
