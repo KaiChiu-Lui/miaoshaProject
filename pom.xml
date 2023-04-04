@@ -9,13 +9,20 @@
   <version>1.0-SNAPSHOT</version>
   <modules>
     <module>usermicroservice-1001</module>
-      <module>itemmicroservice-2001</module>
-      <module>ordermicroservice-3001</module>
-      <module>promomicroservice-4001</module>
-      <module>paymentmicroservice-5001</module>
-      <module>eurekaserver-6001</module>
-      <module>gatewayserver-7001</module>
-      <module>common-api</module>
+    <module>usermicroservice-1002</module>
+    <module>itemmicroservice-2001</module>
+    <module>itemmicroservice-2002</module>
+    <module>ordermicroservice-3001</module>
+    <module>ordermicroservice-3002</module>
+    <module>promomicroservice-4001</module>
+    <module>promomicroservice-4002</module>
+    <module>paymentmicroservice-5001</module>
+    <module>paymentmicroservice-5002</module>
+    <module>eurekaserver-6001</module>
+    <module>eurekaserver-6002</module>
+    <module>gatewayserver-7001</module>
+    <module>gatewayserver-7002</module>
+    <module>common-api</module>
   </modules>
   <!--  <packaging>pom</packaging>-->
 
