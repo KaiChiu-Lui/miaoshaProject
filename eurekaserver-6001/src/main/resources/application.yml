@@ -11,8 +11,8 @@ eureka:
     register-with-eureka: false #是否向注册中心注册自己
     fetch-registry: false #是否向注册中心获取注册信息
     service-url: #eureka服务器的地址
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
-
+#      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+        defaultZone: http://eureka6001.com:6001/eureka,http://eureka6002.com:6002/eureka
 spring:
   cloud:
     inetutils:
