@@ -11,24 +11,23 @@ public class CommonException implements CommonError{
 
     public String errMsg;
 
-    public String errCode;
+    public Integer errCode;
 
     public CommonException(String errMsg){
         this.errMsg = errMsg;
     }
 
-    @Override
-    public int getErrCode() {
-        return 0;
+    public int getErrCode(){
+        return this.errCode;
     }
 
-    @Override
-    public String getErrMsg() {
-        return null;
+    public String getErrMsg(){
+        return this.errMsg;
     }
 
-    @Override
-    public CommonError setErrMsg(String errMsg) {
-        return null;
+    public CommonError setErrMsg(String errMsg){
+        this.errMsg = errMsg;
+        return this;
     }
+
 }
