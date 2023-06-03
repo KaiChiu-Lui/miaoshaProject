@@ -6,8 +6,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -16:50
+ * @author KaiChui
+ * @date 2023-05-15  -16:50
  */
 public class UserModel {
     private Integer id;

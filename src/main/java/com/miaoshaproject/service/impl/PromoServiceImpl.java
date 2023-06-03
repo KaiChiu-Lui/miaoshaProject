@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-24  -21:46
+ * @author KaiChui
+ * @date 2023-05-24  -21:46
  */
 @Service
 public class PromoServiceImpl implements PromoService {

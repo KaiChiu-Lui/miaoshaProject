@@ -3,7 +3,9 @@ package com.miaoshaproject.controller;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -13,8 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -22:54
+ * @author KaiChui
+ * @date 2023-05-15  -22:54
  */
 public class BaseController {
 
@@ -30,7 +32,12 @@ public class BaseController {
             BusinessException businessException = (BusinessException) ex;
             responseData.put("errCode", businessException.getErrCode());
             responseData.put("errMsg", businessException.getErrMsg());
-        } else {
+        } else if(ex instanceof HystrixRuntimeException) {
+            responseData.put("errCode",503);
+            responseData.put("errMsg","服务器繁忙,请稍后再试");
+            return CommonReturnType.create(responseData,"fail");
+        }
+        else {
             responseData.put("errCode", EmBusinessError.UNKNOWN_ERROR.getErrCode());
             responseData.put("errMsg", EmBusinessError.UNKNOWN_ERROR.getErrMsg());
         }

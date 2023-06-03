@@ -6,8 +6,8 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-19  -23:05
+ * @author KaiChui
+ * @date 2023-05-19  -23:05
  */
 public class ItemModel {
     private Integer id;

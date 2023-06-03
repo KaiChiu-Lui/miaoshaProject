@@ -1,17 +1,21 @@
 package com.miaoshaproject.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.aspect.ApiAroundAspect;
 import com.miaoshaproject.client.ItemFeignClient;
 import com.miaoshaproject.client.PromoFeignClient;
 import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.impl.CacheServiceImpl;
 import com.miaoshaproject.service.model.ItemModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,6 +46,8 @@ public class ItemController extends BaseController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiAroundAspect.class);
 
     //创建商品的controller
     @RequestMapping(value = "/create", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
@@ -166,7 +172,7 @@ public class ItemController extends BaseController {
     //商品列表页面浏览
     @RequestMapping(value = "/list", method = {RequestMethod.GET})
     @ResponseBody
-    public CommonReturnType listItem() {
+    public CommonReturnType listItem() throws Exception{
         List<ItemModel> itemModelList = itemService.listItem();
         List<ItemVO> itemVOList = itemModelList.stream().map(itemModel -> {
             CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(itemModel.getId());

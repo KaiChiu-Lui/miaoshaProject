@@ -1,8 +1,8 @@
 package com.miaoshaproject.controller.viewobject;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -17:34
+ * @author KaiChui
+ * @date 2023-05-15  -17:34
  */
 public class UserVO {
     private Integer id;

@@ -4,8 +4,8 @@ import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.service.model.UserModel;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -15:50
+ * @author KaiChui
+ * @date 2023-05-15  -15:50
  */
 public interface UserService {
     UserModel getUserById(Integer id);

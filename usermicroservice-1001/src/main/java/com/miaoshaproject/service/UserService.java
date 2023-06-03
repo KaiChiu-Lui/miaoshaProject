@@ -21,4 +21,6 @@ public interface UserService {
 
     int deleteUser(Integer userId);
 
+    UserModel getUserByIdInCache(Integer id);
+
 }

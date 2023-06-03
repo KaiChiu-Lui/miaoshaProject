@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -15:48
+ * @author KaiChui
+ * @date 2023-05-15  -15:48
  */
 @Controller("user")
 @RequestMapping("/user")

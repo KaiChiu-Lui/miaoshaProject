@@ -3,8 +3,8 @@ package com.miaoshaproject.service.model;
 import java.math.BigDecimal;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-21  -20:13
+ * @author KaiChui
+ * @date 2023-05-21  -20:13
  */
 //用户下单的交易模型
 public class OrderModel {

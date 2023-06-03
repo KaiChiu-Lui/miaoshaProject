@@ -6,8 +6,8 @@ import com.miaoshaproject.service.model.ItemModel;
 import java.util.List;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-19  -23:12
+ * @author KaiChui
+ * @date 2023-05-19  -23:12
  */
 public interface ItemService {
 

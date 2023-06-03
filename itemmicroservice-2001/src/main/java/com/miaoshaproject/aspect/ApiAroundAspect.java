@@ -30,11 +30,11 @@ public class ApiAroundAspect {
         try {
             result = joinPoint.proceed();
         } catch (Throwable e) {
-            logger.error("fail: "+ "applicationName:" + applicationName + " " + "instanceId:"+instanceId + " " + className + "." + methodName + "(): " + args + " throws exception:"+e);
+            logger.error("fail: "+ "applicationName:" + applicationName + " " + "instanceId:"+instanceId + " " + className + "." + methodName + "(): " + args.toString() + " throws exception:"+e);
             throw e;
         }
         long endTime = System.currentTimeMillis();
-        logger.info("success: "+ "applicationName:" + applicationName + " " + "instanceId:"+instanceId + " " + className + "." + methodName + "(): " + args +" returns " + result + " (time: " + (endTime - startTime) + "ms)");
+        logger.info("success: "+ "applicationName:" + applicationName + " " + "instanceId:"+instanceId + " " + className + "." + methodName + "(): " + args.toString() +" returns " + result + " (time: " + (endTime - startTime) + "ms)");
         return result;
     }
 

@@ -5,8 +5,8 @@ import org.joda.time.DateTime;
 import java.math.BigDecimal;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-24  -20:26
+ * @author KaiChui
+ * @date 2023-05-24  -20:26
  */
 public class PromoModel {
     private Integer id;

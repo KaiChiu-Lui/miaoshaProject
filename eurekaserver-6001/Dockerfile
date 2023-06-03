@@ -1,5 +1,5 @@
 FROM openjdk:8-jdk-alpine
-COPY ../target/eurekaserver.jar /app/eurekaserver.jar
+COPY ../target/eurekaserver-6001-1.0-SNAPSHOT.jar /app/eurekaserver.jar
 COPY ../src/main/resources/application.yml /app/application.yml
 
 ENV SPRING_CONFIG_LOCATION=/app/application.yml

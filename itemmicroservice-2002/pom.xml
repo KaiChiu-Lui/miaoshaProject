@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>itemmicroservice-2001</artifactId>
+    <artifactId>itemmicroservice-2002</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -40,6 +40,10 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
         </dependency>
         <!--数据库-->
         <dependency>

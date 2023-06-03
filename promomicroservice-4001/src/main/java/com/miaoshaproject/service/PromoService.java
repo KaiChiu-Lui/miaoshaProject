@@ -7,8 +7,8 @@ import com.miaoshaproject.service.model.PromoModel;
 import java.util.List;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-24  -21:26
+ * @author KaiChui
+ * @date 2023-05-24  -21:26
  */
 public interface PromoService {
 

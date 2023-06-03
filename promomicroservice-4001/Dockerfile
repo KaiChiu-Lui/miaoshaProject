@@ -1,5 +1,5 @@
 FROM openjdk:8-jdk-alpine
-COPY ../target/promomicroservice.jar /app/promomicroservice.jar
+COPY ../target/promomicroservice-4001-1.0-SNAPSHOT.jar /app/promomicroservice.jar
 COPY ../src/main/resources/application.properties /app/application.properties
 COPY ../src/main/resources/logback-spring.xml /app/logback-spring.xml
 

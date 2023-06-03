@@ -6,8 +6,8 @@ import lombok.Data;
 import org.apache.catalina.User;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -18:00
+ * @author KaiChui
+ * @date 2023-05-15  -18:00
  */
 @Data
 public class CommonReturnType {

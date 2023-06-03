@@ -7,8 +7,8 @@ import lombok.ToString;
 import org.springframework.stereotype.Component;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -18:00
+ * @author KaiChui
+ * @date 2023-05-15  -18:00
  */
 @ToString
 @Data

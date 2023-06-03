@@ -2,15 +2,21 @@ package com.miaoshaproject.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.aspect.ApiAroundAspect;
 import com.miaoshaproject.client.ItemFeignClient;
 import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.UserVO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.mq.MqProducer;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.impl.PaymentServiceImpl;
 import com.netflix.discovery.converters.Auto;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -48,6 +54,9 @@ public class PaymentController extends BaseController{
     //封装下单请求
     @RequestMapping(value = "/createorder", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
+    @HystrixCommand(fallbackMethod = "createOrderFallback",commandProperties = {
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds",value = "3000")
+    })
     public CommonReturnType createOrder(@CookieValue(value = "is_login",required = false) String uid,
                                         @RequestParam(name = "itemId") Integer itemId,
                                         @RequestParam(name = "promoId",required = false) Integer promoId,
@@ -93,6 +102,19 @@ public class PaymentController extends BaseController{
         return CommonReturnType.create(null);
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(ApiAroundAspect.class);
+
+    public CommonReturnType createOrderFallback(@CookieValue(value = "is_login",required = false) String uid,
+                                        @RequestParam(name = "itemId") Integer itemId,
+                                        @RequestParam(name = "promoId",required = false) Integer promoId,
+                                        @RequestParam(name = "amount") Integer amount,
+                                        @RequestParam(name="promoToken",required = false) String promoToken,
+                                        @RequestParam(name = "promoStatus",required = false) Integer promoStatus
+    ) throws BusinessException {
+        logger.info("OrderController.createOrder降级");
+        throw new BusinessException(new CommonException("服务器繁忙，请稍后再试"));
+    }
+
     @RequestMapping("/islogin")
     @ResponseBody
     public CommonReturnType testLogin() throws BusinessException{
@@ -116,15 +138,5 @@ public class PaymentController extends BaseController{
         }
         UserVO userVO = (UserVO) redisTemplate.opsForValue().get(uid);
         return CommonReturnType.create(userVO);
-    }
-
-    @RequestMapping("/testReturnType")
-    @ResponseBody
-    public CommonReturnType testReturnType() throws BusinessException {
-        Integer itemId = 7;
-        System.out.println("itemId:"+itemId);
-        System.out.println(itemFeignClient.getItemByIdInCache(7)==null);
-        System.out.println(itemFeignClient.getItemByIdInCache(7).getClass());
-        return CommonReturnType.create(itemFeignClient.getItemByIdInCache(7).toString());
     }
 }

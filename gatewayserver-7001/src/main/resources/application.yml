@@ -10,9 +10,6 @@ spring:
       sampler:
         probability: 1
   cloud:
-    nacos:
-      discovery:
-        server-addr: localhost:8848 #配置Nacos地址
     gateway:
       discovery:
         locator:

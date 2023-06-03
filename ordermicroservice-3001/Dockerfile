@@ -1,5 +1,5 @@
 FROM openjdk:8-jdk-alpine
-COPY ../target/ordermicroservice.jar /app/ordermicroservice.jar
+COPY ../target/ordermicroservice-3001-1.0-SNAPSHOT.jar /app/ordermicroservice.jar
 COPY ../src/main/resources/application.properties /app/application.properties
 COPY ../src/main/resources/logback-spring.xml /app/logback-spring.xml
 

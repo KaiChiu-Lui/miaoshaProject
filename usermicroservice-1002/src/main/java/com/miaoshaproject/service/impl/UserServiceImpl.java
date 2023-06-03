@@ -166,4 +166,16 @@ public class UserServiceImpl implements UserService {
     public int deleteUser(Integer userId) {
         return userDOMapper.deleteByPrimaryKey(userId);
     }
+
+    //UserServiceimpl.getUserByIdinCache
+    @Override
+    public UserModel getUserByIdInCache(Integer id) {
+        UserModel userModel = (UserModel) redisTemplate.opsForValue().get("user_validate_"+id);
+        if(userModel == null){
+            userModel = this.getUserById(id);
+            redisTemplate.opsForValue().set("user_validate_"+id,userModel);
+            redisTemplate.expire("user_validate_"+id,10, TimeUnit.MINUTES);
+        }
+        return userModel;
+    }
 }

@@ -1,17 +1,22 @@
 package com.miaoshaproject.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.miaoshaproject.aspect.ApiAroundAspect;
 import com.miaoshaproject.client.ItemFeignClient;
 import com.miaoshaproject.client.PromoFeignClient;
-import com.miaoshaproject.client.UserFeignClient;
 import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.controller.viewobject.PromoVO;
 import com.miaoshaproject.error.BusinessException;
+import com.miaoshaproject.error.CommonException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.impl.CacheServiceImpl;
 import com.miaoshaproject.service.model.ItemModel;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,6 +47,8 @@ public class ItemController extends BaseController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiAroundAspect.class);
 
     //创建商品的controller
     @RequestMapping(value = "/create", method = {RequestMethod.POST}, consumes = {CONTENT_TYPE_FORMED})
@@ -108,6 +115,10 @@ public class ItemController extends BaseController {
     //商品详情页浏览
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
+    @HystrixCommand(fallbackMethod = "getItemFallback",commandProperties = {
+            @HystrixProperty(name = "execution.isolation.strategy",value = "SEMAPHORE"),
+            @HystrixProperty(name = "execution.isolation.semaphore.maxConcurrentRequests",value = "100")
+    })
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
         //当商品是活动商品时才获取和设置缓存
         CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(id);
@@ -149,6 +160,11 @@ public class ItemController extends BaseController {
         return CommonReturnType.create(itemVO);
     }
 
+    public CommonReturnType getItemFallback(@RequestParam(name = "id") Integer id) throws Exception {
+        logger.info("ItemController.listItem降级");
+        throw new BusinessException(new CommonException("服务器繁忙，请稍后再试"));
+    }
+
     @RequestMapping("/getItemByIdInCache")
     @ResponseBody
     public ItemVO getItemByIdInCache(Integer id) throws BusinessException{
@@ -166,7 +182,11 @@ public class ItemController extends BaseController {
     //商品列表页面浏览
     @RequestMapping(value = "/list", method = {RequestMethod.GET})
     @ResponseBody
-    public CommonReturnType listItem() {
+    @HystrixCommand(fallbackMethod = "listItemFallback",commandProperties = {
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds",value = "1000")
+    })
+    public CommonReturnType listItem() throws Exception{
+        Thread.sleep(2000);
         List<ItemModel> itemModelList = itemService.listItem();
         List<ItemVO> itemVOList = itemModelList.stream().map(itemModel -> {
             CommonReturnType commonReturnType = promoFeignClient.getPromoByItemId(itemModel.getId());
@@ -182,8 +202,13 @@ public class ItemController extends BaseController {
         return CommonReturnType.create(itemVOList);
     }
 
-    public RestTemplate restTemplate = new RestTemplate();
+    public CommonReturnType listItemFallback() throws BusinessException {
 
+        logger.info("ItemController.listItem降级");
+        throw new BusinessException(new CommonException("服务器繁忙，请稍后再试"));
+    }
+
+    public RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
     public ItemFeignClient itemFeignClient;
@@ -202,6 +227,4 @@ public class ItemController extends BaseController {
         System.out.println(itemVO.getClass());
         System.out.println(itemVO);
     }
-
-
 }

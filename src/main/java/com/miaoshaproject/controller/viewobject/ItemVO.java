@@ -3,8 +3,8 @@ package com.miaoshaproject.controller.viewobject;
 import java.math.BigDecimal;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-20  -16:05
+ * @author KaiChui
+ * @date 2023-05-20  -16:05
  */
 public class ItemVO {
     private Integer id;

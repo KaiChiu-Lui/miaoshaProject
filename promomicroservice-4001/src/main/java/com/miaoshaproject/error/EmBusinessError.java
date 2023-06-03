@@ -1,8 +1,8 @@
 package com.miaoshaproject.error;
 
 /**
- * @author KiroScarlet
- * @date 2019-05-15  -21:35
+ * @author KaiChui
+ * @date 2023-05-15  -21:35
  */
 public enum EmBusinessError implements CommonError {
     //通用错误类型10001
